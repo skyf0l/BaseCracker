@@ -5,18 +5,29 @@ import re
 
 name = 'basecracker'
 
-all_bases = [
-    ['16', 'hexadecimal'],
-    ['64', 'base64']
-]
-
 # base functions
+def base16_encoder(plaintext):
+    return plaintext
+def base16_decoder(cipher):
+    return cipher
+def base64_encoder(plaintext):
+    return plaintext
+def base64_decoder(cipher):
+    return cipher
+
+# base tab
+all_bases = [
+    ['16', 'hexadecimal', base16_encoder, base16_decoder],
+    ['64', 'base64', base64_encoder, base64_decoder]
+]
+ENCODER = 2
+DECODER = 3
 
 # get base functions
-def get_encoder(base):
-    return None
-
-def get_decoder(base):
+def get_base_data(base_name):
+    for base in all_bases:
+        if base_name == base[0] or base_name == base[1]:
+            return base
     return None
 
 # main encoder
@@ -24,13 +35,14 @@ def main_encoder(plaintext, bases):
     cipher = plaintext
 
     for base in bases:
-        base_encoder = get_encoder(base)
-        if base_encoder is None:
+        base_data = get_base_data(base)
+        if base_data is None:
             print('unknown base: ' + base + ' (ignored)')
             continue
 
-        cipher = base_encoder(cipher)
+        cipher = base_data[ENCODER](cipher)
         if cipher is None:
+            print('error while encoding in base ' + base_data[0] + ' (' + base_data[1] + ')')
             return None
 
     return cipher
@@ -40,13 +52,14 @@ def main_decoder(cipher, bases):
     plaintext = cipher
 
     for base in bases:
-        base_decoder = get_decoder(base)
-        if base_decoder is None:
+        base_data = get_base_data(base)
+        if base_data is None:
             print('unknown base: ' + base + ' (ignored)')
             continue
 
-        plaintext = base_decoder(plaintext)
+        plaintext = base_data[DECODER](plaintext)
         if plaintext is None:
+            print('error while decoding in base ' + base_data[0] + ' (' + base_data[1] + ')')
             return None
 
     return plaintext
