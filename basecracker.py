@@ -3,21 +3,54 @@
 import base64
 import sys
 import re
+import string
 
 name = 'basecracker'
 
+def split_by_size(string, size):
+    splited = []
+    for k in range(0, len(string), size):
+        splited.append(string[0 + k:size + k])
+    return splited
+
 # base functions
+def int_to_base(num, base, size):
+    encode = ''
+    while num:
+        encode += base[num % len(base)]
+        num //= len(base)
+    encode += '0' * (size - len(encode))
+    return encode[::-1]
+
+# base2
+def base2_encoder(plaintext):
+    cipher = ''
+    for c in plaintext:
+        cipher += int_to_base(ord(c), '01', 8)
+    return cipher
+def base2_decoder(cipher):
+    plaintext = ''
+    tokens = split_by_size(cipher, 8)
+    for token in tokens:
+        plaintext += chr(int(token, 2))
+    return plaintext
+
+# base16
 def base16_encoder(plaintext):
     return plaintext
 def base16_decoder(cipher):
     return cipher
+
+# base64
+base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
 def base64_encoder(plaintext):
-    return base64.b64encode(bytearray(plaintext, 'utf8')).decode("utf-8")
+    return base64.b64encode(bytearray(plaintext, 'utf8')).decode('utf-8')
 def base64_decoder(cipher):
-    return base64.b64decode(cipher).decode("utf-8")
+    return base64.b64decode(cipher).decode('utf-8')
 
 # base tab
 all_bases = [
+    ['2', 'base2', base2_encoder, base2_decoder],
     ['16', 'base16', base16_encoder, base16_decoder],
     ['64', 'base64', base64_encoder, base64_decoder]
 ]
