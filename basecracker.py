@@ -5,6 +5,11 @@ import re
 
 name = 'basecracker'
 
+all_bases = [
+    ['16', 'hexadecimal'],
+    ['64', 'base64']
+]
+
 # main encoder
 def main_encoder(plaintext, bases):
     print('encoder')
@@ -56,8 +61,10 @@ def print_help():
     print('    ' + name + ' -d plaintext base_names')
     print('     -> decode cipher from bases')
     print('')
-    print('    base_names supported are 16,64')
     print('    base_names can be stacked and are applied in order (space and coma are delimiters)')
+    print('    base_names supported are:')
+    for base in all_bases:
+        print('        ' + base[0] + '\talias ' + base[1])
     print('')
     print('Exemple:')
     print('    $ ' + name + ' -e basecracker \'64 16\'')
