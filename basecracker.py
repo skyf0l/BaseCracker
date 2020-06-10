@@ -1,8 +1,49 @@
 #!/usr/bin/python3
 
 import sys
+import re
 
 name = 'basecracker'
+
+# main encoder
+def main_encoder(plaintext, bases):
+    print('encoder')
+
+# main decoder
+def main_decoder(cipher, bases):
+    print('decoder')
+
+# main cracker
+def main_cracker(cipher):
+    print('cracker')
+
+# parse bases
+def parse_bases(bases_str):
+    bases = re.split(' |,',bases_str)
+    bases = list(filter(('').__ne__, bases)) # remove empty elements
+    return bases
+
+# main
+def main(args):
+    if '-h' in args or '--help' in args:
+        print_help()
+    if len(args) == 0:
+        print_miss_args()
+
+    if len(args) == 1:
+        main_cracker(args[0])
+    elif len(args) == 3:
+        bases = parse_bases(args[2])
+
+        if args[0] == '-e':
+            main_encoder(args[1], bases)
+        elif args[0] == '-d':
+            main_decoder(args[1], bases)
+        else:
+            print_invalid_instruction()
+
+    else:
+        print_miss_args()
 
 # display
 def print_help():
@@ -34,36 +75,6 @@ def print_invalid_instruction():
     print(name + ': invalid instruction')
     print('    try --help for help')
     exit(0)
-
-# main encoder
-def main_encoder(plaintext, bases):
-    print('encoder')
-
-# main decoder
-def main_decoder(cipher, bases):
-    print('decoder')
-
-# main cracker
-def main_cracker(cipher):
-    print('cracker')
-
-# main
-def main(args):
-    if '-h' in args or '--help' in args:
-        print_help()
-    if len(args) == 0:
-        print_miss_args()
-    if len(args) == 1:
-        main_cracker(args[0])
-    elif len(args) == 3:
-        if args[0] == '-e':
-            main_encoder(args[1], args[2])
-        elif args[0] == '-d':
-            main_decoder(args[1], args[2])
-        else:
-            print_invalid_instruction()
-    else:
-        print_miss_args()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
