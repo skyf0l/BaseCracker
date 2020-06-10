@@ -10,13 +10,46 @@ all_bases = [
     ['64', 'base64']
 ]
 
+# base functions
+
+# get base functions
+def get_encoder(base):
+    return None
+
+def get_decoder(base):
+    return None
+
 # main encoder
 def main_encoder(plaintext, bases):
-    print('encoder')
+    cipher = plaintext
+
+    for base in bases:
+        base_encoder = get_encoder(base)
+        if base_encoder is None:
+            print('unknown base: ' + base + ' (ignored)')
+            continue
+
+        cipher = base_encoder(cipher)
+        if cipher is None:
+            return None
+
+    return cipher
 
 # main decoder
 def main_decoder(cipher, bases):
-    print('decoder')
+    plaintext = cipher
+
+    for base in bases:
+        base_decoder = get_decoder(base)
+        if base_decoder is None:
+            print('unknown base: ' + base + ' (ignored)')
+            continue
+
+        plaintext = base_decoder(plaintext)
+        if plaintext is None:
+            return None
+
+    return plaintext
 
 # main cracker
 def main_cracker(cipher):
@@ -67,9 +100,9 @@ def print_help():
         print('        ' + base[0] + '\talias ' + base[1])
     print('')
     print('Exemple:')
-    print('    $ ' + name + ' -e basecracker \'64 16\'')
+    print('    $ ' + name + ' -e basecracker \'64 hexadecimal\'')
     print('     -> 596d467a5a574e7959574e725a58493d')
-    print('    $ ' + name + ' -d 596d467a5a574e7959574e725a58493d \'16,64\'')
+    print('    $ ' + name + ' -d 596d467a5a574e7959574e725a58493d \'16,base64\'')
     print('     -> basecracker')
     exit(0)
 
