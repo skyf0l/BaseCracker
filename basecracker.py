@@ -39,7 +39,6 @@ def base2_decoder(cipher):
 
 # base16
 base16_alphabet = '0123456789abcdef'
-
 def base16_encoder(plaintext):
     cipher = ''
     for c in plaintext:
@@ -56,10 +55,26 @@ def base16_decoder(cipher):
 
 # base64
 base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
+base64_complement = '='
 def base64_encoder(plaintext):
-    return base64.b64encode(bytearray(plaintext, 'utf8')).decode('utf-8')
+    cipher = ''
+    base2_cipher = base2_encoder(plaintext)
+    tokens = split_by_size(base2_cipher, 6)
+    print(tokens)
+    for token in tokens:
+        if len(token) == 6:
+            cipher += base64_alphabet[int(token, 2)]
+        else:
+            complement = base64_complement * ((6 - len(token)) // 2)
+            token += base2_alphabet[0] * (len(complement) * 2)
+            cipher += base64_alphabet[int(token, 2)]
+            cipher += complement
+    return cipher
+
 def base64_decoder(cipher):
-    return base64.b64decode(cipher).decode('utf-8')
+    plaintext = ''
+    plaintext = base64.b64decode(cipher).decode('utf-8')
+    return plaintext
 
 # base tab
 all_bases = [
