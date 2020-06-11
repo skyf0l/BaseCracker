@@ -60,7 +60,6 @@ def base64_encoder(plaintext):
     cipher = ''
     base2_cipher = base2_encoder(plaintext)
     tokens = split_by_size(base2_cipher, 6)
-    print(tokens)
     for token in tokens:
         if len(token) == 6:
             cipher += base64_alphabet[int(token, 2)]
