@@ -59,6 +59,7 @@ base64_complement = '='
 def base64_encoder(plaintext):
     cipher = ''
     base2_cipher = base2_encoder(plaintext)
+
     tokens = split_by_size(base2_cipher, 6)
     for token in tokens:
         if len(token) == 6:
@@ -71,8 +72,16 @@ def base64_encoder(plaintext):
     return cipher
 
 def base64_decoder(cipher):
-    plaintext = ''
-    plaintext = base64.b64decode(cipher).decode('utf-8')
+    base2_plaintext = ''
+    for c in cipher:
+        if c in base64_alphabet:
+            base2_plaintext += int_to_base(base64_alphabet.index(c), base2_alphabet, 6)
+        elif c in base64_complement:
+            base2_plaintext = base2_plaintext[:-2]
+        else:
+            return None
+
+    plaintext = base2_decoder(base2_plaintext)
     return plaintext
 
 # base tab
