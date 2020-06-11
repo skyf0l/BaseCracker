@@ -23,11 +23,13 @@ def int_to_base(num, base, size):
     return encode[::-1]
 
 # base2
+base2_alphabet = '01'
 def base2_encoder(plaintext):
     cipher = ''
     for c in plaintext:
-        cipher += int_to_base(ord(c), '01', 8)
+        cipher += int_to_base(ord(c), base2_alphabet, 8)
     return cipher
+
 def base2_decoder(cipher):
     plaintext = ''
     tokens = split_by_size(cipher, 8)
@@ -36,10 +38,21 @@ def base2_decoder(cipher):
     return plaintext
 
 # base16
+base16_alphabet = '0123456789abcdef'
+
 def base16_encoder(plaintext):
-    return plaintext
-def base16_decoder(cipher):
+    cipher = ''
+    for c in plaintext:
+        cipher += base16_alphabet[ord(c) // 16] + base16_alphabet[ord(c) % 16]
     return cipher
+
+def base16_decoder(cipher):
+    plaintext = ''
+    cipher = cipher.lower()
+    tokens = split_by_size(cipher, 2)
+    for token in tokens:
+        plaintext += chr(int(token, 16))
+    return plaintext
 
 # base64
 base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
