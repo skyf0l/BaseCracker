@@ -1,17 +1,165 @@
 #!/usr/bin/python3
 
+import base64
 import sys
 import re
+import string
 
 name = 'basecracker'
 
+def split_by_size(string, size):
+    splited = []
+    for k in range(0, len(string), size):
+        splited.append(string[0 + k:size + k])
+    return splited
+
+# base functions
+def int_to_base(num, base, size):
+    encode = ''
+    while num:
+        encode += base[num % len(base)]
+        num //= len(base)
+    encode += '0' * (size - len(encode))
+    return encode[::-1]
+
+# base2
+base2_alphabet = '01'
+def base2_encoder(plaintext):
+    cipher = ''
+    for c in plaintext:
+        cipher += int_to_base(ord(c), base2_alphabet, 8)
+    return cipher
+
+def base2_decoder(cipher):
+    plaintext = ''
+    tokens = split_by_size(cipher, 8)
+    for token in tokens:
+        plaintext += chr(int(token, 2))
+    return plaintext
+
+# base16
+base16_alphabet = '0123456789abcdef'
+def base16_encoder(plaintext):
+    cipher = ''
+    for c in plaintext:
+        cipher += base16_alphabet[ord(c) // 16] + base16_alphabet[ord(c) % 16]
+    return cipher
+
+def base16_decoder(cipher):
+    plaintext = ''
+    cipher = cipher.lower()
+    tokens = split_by_size(cipher, 2)
+    for token in tokens:
+        plaintext += chr(int(token, 16))
+    return plaintext
+
+# base64
+base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
+base64_complement = '='
+def base64_encoder(plaintext):
+    cipher = ''
+    base2_cipher = base2_encoder(plaintext)
+
+    tokens = split_by_size(base2_cipher, 6)
+    for token in tokens:
+        if len(token) == 6:
+            cipher += base64_alphabet[int(token, 2)]
+        else:
+            complement = base64_complement * ((6 - len(token)) // 2)
+            token += base2_alphabet[0] * (len(complement) * 2)
+            cipher += base64_alphabet[int(token, 2)]
+            cipher += complement
+    return cipher
+
+def base64_decoder(cipher):
+    base2_plaintext = ''
+    for c in cipher:
+        if c in base64_alphabet:
+            base2_plaintext += int_to_base(base64_alphabet.index(c), base2_alphabet, 6)
+        elif c in base64_complement:
+            base2_plaintext = base2_plaintext[:-2]
+        else:
+            return None
+
+    plaintext = base2_decoder(base2_plaintext)
+    return plaintext
+
+# base tab
+all_bases = [
+    ['2', 'base2', base2_encoder, base2_decoder],
+    ['16', 'base16', base16_encoder, base16_decoder],
+    ['64', 'base64', base64_encoder, base64_decoder]
+]
+ENCODER = 2
+DECODER = 3
+
+# get base functions
+def get_base_data(base_name):
+    for base in all_bases:
+        if base_name == base[0] or base_name == base[1]:
+            return base
+    return None
+
 # main encoder
-def main_encoder(plaintext, bases):
-    print('encoder')
+def main_encoder(plaintext, bases, display):
+    cipher = plaintext
+
+    if display == 1:
+        print('Plaintext: ' + plaintext)
+        print()
+
+    for base in bases:
+        base_data = get_base_data(base)
+        if base_data is None:
+            if display == 1:
+                print('Unknown base: ' + base + ' (ignored)')
+            continue
+
+        cipher = base_data[ENCODER](cipher)
+        if cipher is None:
+            if display == 1:
+                print('Error while encoding in ' + base_data[1])
+            return None
+
+        if display == 1:
+            print('Apply ' + base_data[1] + ': ' + cipher)
+
+    if display == 1:
+        print()
+        print('Cipher: ' + cipher)
+    else:
+        print(cipher)
+    return cipher
 
 # main decoder
-def main_decoder(cipher, bases):
-    print('decoder')
+def main_decoder(cipher, bases, display):
+    plaintext = cipher
+
+    if display == 1:
+        print('Cipher: ' + cipher)
+        print()
+
+    for base in bases:
+        base_data = get_base_data(base)
+        if base_data is None:
+            if display == 1:
+                print('Unknown base: ' + base + ' (ignored)')
+            continue
+
+        plaintext = base_data[DECODER](plaintext)
+        if plaintext is None:
+            if display == 1:
+                print('Error while decoding in base ' + base_data[0] + ' (' + base_data[1] + ')')
+            return None
+        if display == 1:
+            print('Apply ' + base_data[1] + ': ' + plaintext)
+
+    if display == 1:
+        print()
+        print('Plaintext: ' + plaintext)
+    else:
+        print(plaintext)
+    return plaintext
 
 # main cracker
 def main_cracker(cipher):
@@ -36,9 +184,13 @@ def main(args):
         bases = parse_bases(args[2])
 
         if args[0] == '-e':
-            main_encoder(args[1], bases)
+            main_encoder(args[1], bases, 1)
+        elif args[0] == '-E':
+            main_encoder(args[1], bases, 0)
         elif args[0] == '-d':
-            main_decoder(args[1], bases)
+            main_decoder(args[1], bases, 1)
+        elif args[0] == '-D':
+            main_decoder(args[1], bases, 0)
         else:
             print_invalid_instruction()
 
@@ -50,20 +202,26 @@ def print_help():
     print('Usage:')
     print('    ' + name + ' cipher')
     print('     ->try to crack cipher')
-    print('')
-    print('    ' + name + ' -e plaintext base_names')
+    print()
+    print('    ' + name + ' -e/-E plaintext base_names')
     print('     -> encode cipher in bases')
-    print('    ' + name + ' -d plaintext base_names')
+    print('         -e display details')
+    print('         -E display only result')
+    print('    ' + name + ' -d/-D plaintext base_names')
     print('     -> decode cipher from bases')
-    print('')
-    print('    base_names supported are 16,64')
+    print('         -d display details')
+    print('         -D display only result')
+    print()
     print('    base_names can be stacked and are applied in order (space and coma are delimiters)')
-    print('')
+    print('    base_names supported are:')
+    for base in all_bases:
+        print('        ' + base[0] + '\talias ' + base[1])
+    print()
     print('Exemple:')
-    print('    $ ' + name + ' -e basecracker \'64 16\'')
-    print('     -> 596d467a5a574e7959574e725a58493d')
-    print('    $ ' + name + ' -d 596d467a5a574e7959574e725a58493d \'16,64\'')
-    print('     -> basecracker')
+    print('    $ ' + name + ' -E basecracker \'64 base16\'')
+    print('      596d467a5a574e7959574e725a58493d')
+    print('    $ ' + name + ' -D 596d467a5a574e7959574e725a58493d \'16,base64\'')
+    print('      basecracker')
     exit(0)
 
 def print_miss_args():
