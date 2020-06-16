@@ -21,6 +21,22 @@ def int_to_base(num, base, size):
     encode += '0' * (size - len(encode))
     return encode[::-1]
 
+# plaintext can is encoded in base x
+def is_base(cipher, base_data):
+    cipher = cipher.replace(' ', '')
+    is_complement = 0
+    for c in cipher:
+        if c not in base_data[ALPHABET]:
+            if base_data[COMPLEMENT] is None:
+                return False
+            elif c in base_data[COMPLEMENT]:
+                is_complement = 1
+            else:
+                return False
+        elif is_complement == 1 and c not in base_data[COMPLEMENT]:
+            return False
+    return True
+
 # base2
 base2_alphabet = '01'
 def base2_encoder(plaintext):
@@ -136,13 +152,15 @@ def base64_decoder(cipher):
 
 # base tab
 all_bases = [
-    ['2', 'base2', base2_encoder, base2_decoder],
-    ['16', 'base16', base16_encoder, base16_decoder],
-    ['32', 'base32', base32_encoder, base32_decoder],
-    ['64', 'base64', base64_encoder, base64_decoder]
+    ['2',  'base2',  base2_encoder,  base2_decoder,  base2_alphabet,  None],
+    ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
+    ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
+    ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement]
 ]
 ENCODER = 2
 DECODER = 3
+ALPHABET = 4
+COMPLEMENT = 5
 
 # get base functions
 def get_base_data(base_name):
@@ -217,6 +235,9 @@ def main_cracker(cipher):
 
     for base_data in all_bases:
         try:
+            if not is_base(cipher, base_data):
+                print('Unknown char' + base_data[1])
+                continue
             plaintext = base_data[DECODER](cipher)
             print('Apply ' + base_data[1] + ': ' + plaintext)
         except:
