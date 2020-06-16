@@ -89,7 +89,7 @@ def base32_decoder(cipher):
         if c in base32_alphabet:
             base2_plaintext += int_to_base(base32_alphabet.index(c), base2_alphabet, 5)
         elif c in base32_complement:
-            base2_plaintext = base2_plaintext[:-2]
+            base2_plaintext += '00000'
         else:
             return None
 
