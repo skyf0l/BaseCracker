@@ -207,7 +207,13 @@ def main_decoder(cipher, bases, display):
 
 # main cracker
 def main_cracker(cipher):
-    print('cracker')
+
+    for base_data in all_bases:
+        try:
+            plaintext = base_data[DECODER](cipher)
+            print('Apply ' + base_data[1] + ': ' + plaintext)
+        except:
+            print('Crash ' + base_data[1])
 
 # parse bases
 def parse_bases(bases_str):
