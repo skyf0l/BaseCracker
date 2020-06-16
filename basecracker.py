@@ -48,6 +48,7 @@ def base16_encoder(plaintext):
 def base16_decoder(cipher):
     plaintext = ''
     cipher = cipher.lower()
+    cipher = cipher.replace(' ', '')
     tokens = split_by_size(cipher, 2)
     for token in tokens:
         plaintext += chr(int(token, 16))
@@ -86,6 +87,7 @@ def base32_encoder(plaintext):
 def base32_decoder(cipher):
     base2_plaintext = ''
     nb_complements = 0
+    cipher = cipher.replace(' ', '')
     for c in cipher:
         if c in base32_alphabet:
             base2_plaintext += int_to_base(base32_alphabet.index(c), base2_alphabet, 5)
@@ -120,6 +122,7 @@ def base64_encoder(plaintext):
 
 def base64_decoder(cipher):
     base2_plaintext = ''
+    cipher = cipher.replace(' ', '')
     for c in cipher:
         if c in base64_alphabet:
             base2_plaintext += int_to_base(base64_alphabet.index(c), base2_alphabet, 6)
