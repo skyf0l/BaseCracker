@@ -23,6 +23,8 @@ def int_to_base(num, base, size):
 
 # plaintext can is encoded in base x
 def is_base(cipher, base_data):
+    if base_data[0] == '16':
+        return is_base16(cipher)
     cipher = cipher.replace(' ', '')
     is_complement = 0
     for c in cipher:
@@ -69,6 +71,13 @@ def base16_decoder(cipher):
     for token in tokens:
         plaintext += chr(int(token, 16))
     return plaintext
+def is_base16(cipher):
+    cipher = cipher.lower()
+    cipher = cipher.replace(' ', '')
+    for c in cipher:
+        if c not in base16_alphabet:
+            return False
+    return True
 
 # base32
 base32_alphabet = string.ascii_uppercase + '234567'
@@ -236,7 +245,7 @@ def main_cracker(cipher):
     for base_data in all_bases:
         try:
             if not is_base(cipher, base_data):
-                print('Unknown char' + base_data[1])
+                print('Unknown char ' + base_data[1])
                 continue
             plaintext = base_data[DECODER](cipher)
             print('Apply ' + base_data[1] + ': ' + plaintext)
