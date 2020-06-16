@@ -85,15 +85,19 @@ def base32_encoder(plaintext):
 
 def base32_decoder(cipher):
     base2_plaintext = ''
+    nb_complements = 0
     for c in cipher:
         if c in base32_alphabet:
             base2_plaintext += int_to_base(base32_alphabet.index(c), base2_alphabet, 5)
         elif c in base32_complement:
             base2_plaintext += '00000'
+            nb_complements += 1
         else:
             return None
 
     plaintext = base2_decoder(base2_plaintext)
+    if nb_complements in base32_nb_complements:
+        plaintext = plaintext[:base32_nb_complements.index(nb_complements)]
     return plaintext
 
 # base64
