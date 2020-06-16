@@ -31,6 +31,7 @@ def base2_encoder(plaintext):
 
 def base2_decoder(cipher):
     plaintext = ''
+    cipher = cipher.replace(' ', '')
     tokens = split_by_size(cipher, 8)
     for token in tokens:
         plaintext += chr(int(token, 2))
@@ -50,6 +51,49 @@ def base16_decoder(cipher):
     tokens = split_by_size(cipher, 2)
     for token in tokens:
         plaintext += chr(int(token, 16))
+    return plaintext
+
+# base32
+base32_alphabet = string.ascii_uppercase + '234567'
+base32_complement = '='
+base32_nb_complements = [0, 6, 4, 3, 1]
+base32_padding_size = 5
+def base32_encoder(plaintext):
+    cipher = ''
+
+    # padding
+    nb_tokens = len(plaintext) // base32_padding_size * 8
+    if len(plaintext) % base32_padding_size != 0:
+        nb_tokens += 8 - base32_nb_complements[len(plaintext) % base32_padding_size]
+        plaintext += '\x00' * (base32_padding_size - (len(plaintext) % base32_padding_size))
+    base2_cipher = base2_encoder(plaintext)
+
+    tokens = split_by_size(base2_cipher, 5)
+    token_id = 0
+    for token in tokens:
+        if token_id >= nb_tokens:
+            cipher += base32_complement
+        elif len(token) == 5:
+            cipher += base32_alphabet[int(token, 2)]
+        else:
+            complement = base32_complement * ((5 - len(token)) // 2)
+            token += base2_alphabet[0] * (len(complement) * 2)
+            cipher += base32_alphabet[int(token, 2)]
+            cipher += complement
+        token_id += 1
+    return cipher
+
+def base32_decoder(cipher):
+    base2_plaintext = ''
+    for c in cipher:
+        if c in base32_alphabet:
+            base2_plaintext += int_to_base(base32_alphabet.index(c), base2_alphabet, 5)
+        elif c in base32_complement:
+            base2_plaintext = base2_plaintext[:-2]
+        else:
+            return None
+
+    plaintext = base2_decoder(base2_plaintext)
     return plaintext
 
 # base64
@@ -87,6 +131,7 @@ def base64_decoder(cipher):
 all_bases = [
     ['2', 'base2', base2_encoder, base2_decoder],
     ['16', 'base16', base16_encoder, base16_decoder],
+    ['32', 'base32', base32_encoder, base32_decoder],
     ['64', 'base64', base64_encoder, base64_decoder]
 ]
 ENCODER = 2
