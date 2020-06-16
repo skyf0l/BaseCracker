@@ -21,11 +21,16 @@ def int_to_base(num, base, size):
     encode += '0' * (size - len(encode))
     return encode[::-1]
 
+def cipher_padding(cipher):
+    cipher = cipher.replace(' ', '')
+    cipher = cipher.replace('\n', '')
+    return cipher
+
 # plaintext can is encoded in base x
 def is_base(cipher, base_data):
     if base_data[0] == '16':
         return is_base16(cipher)
-    cipher = cipher.replace(' ', '')
+    cipher = cipher_padding(cipher)
     is_complement = 0
     for c in cipher:
         if c not in base_data[ALPHABET]:
@@ -49,7 +54,7 @@ def base2_encoder(plaintext):
 
 def base2_decoder(cipher):
     plaintext = ''
-    cipher = cipher.replace(' ', '')
+    cipher = cipher_padding(cipher)
     tokens = split_by_size(cipher, 8)
     for token in tokens:
         plaintext += chr(int(token, 2))
@@ -66,14 +71,14 @@ def base16_encoder(plaintext):
 def base16_decoder(cipher):
     plaintext = ''
     cipher = cipher.lower()
-    cipher = cipher.replace(' ', '')
+    cipher = cipher_padding(cipher)
     tokens = split_by_size(cipher, 2)
     for token in tokens:
         plaintext += chr(int(token, 16))
     return plaintext
 def is_base16(cipher):
     cipher = cipher.lower()
-    cipher = cipher.replace(' ', '')
+    cipher = cipher_padding(cipher)
     for c in cipher:
         if c not in base16_alphabet:
             return False
@@ -112,7 +117,7 @@ def base32_encoder(plaintext):
 def base32_decoder(cipher):
     base2_plaintext = ''
     nb_complements = 0
-    cipher = cipher.replace(' ', '')
+    cipher = cipher_padding(cipher)
     for c in cipher:
         if c in base32_alphabet:
             base2_plaintext += int_to_base(base32_alphabet.index(c), base2_alphabet, 5)
@@ -147,7 +152,7 @@ def base64_encoder(plaintext):
 
 def base64_decoder(cipher):
     base2_plaintext = ''
-    cipher = cipher.replace(' ', '')
+    cipher = cipher_padding(cipher)
     for c in cipher:
         if c in base64_alphabet:
             base2_plaintext += int_to_base(base64_alphabet.index(c), base2_alphabet, 6)
