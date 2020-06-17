@@ -129,7 +129,7 @@ def base32_decoder(cipher):
 
     plaintext = base2_decoder(base2_plaintext)
     if nb_complements in base32_nb_complements:
-        plaintext = plaintext[:base32_nb_complements.index(nb_complements)]
+        plaintext = plaintext[:base32_nb_complements.index(nb_complements) - len(base32_nb_complements)]
     return plaintext
 
 # base64
@@ -246,7 +246,8 @@ def main_decoder(cipher, bases, display):
 
 # main cracker
 def main_cracker(cipher):
-
+    if len(cipher) == 0:
+        return ''
     for base_data in all_bases:
         try:
             if not is_base(cipher, base_data):
@@ -254,6 +255,7 @@ def main_cracker(cipher):
                 continue
             plaintext = base_data[DECODER](cipher)
             print('Apply ' + base_data[1] + ': ' + plaintext)
+            main_cracker(plaintext)
         except:
             print('Crash ' + base_data[1])
 
