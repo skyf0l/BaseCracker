@@ -31,16 +31,16 @@ def is_base(cipher, base_data):
     if base_data[0] == '16':
         return is_base16(cipher)
     cipher = cipher_padding(cipher)
-    is_complement = 0
-    for c in cipher:
-        if c not in base_data[ALPHABET]:
-            if base_data[COMPLEMENT] is None:
-                return False
-            elif c in base_data[COMPLEMENT]:
-                is_complement = 1
-            else:
-                return False
-        elif is_complement == 1 and c not in base_data[COMPLEMENT]:
+
+    for k in range(0, len(cipher)):
+        if cipher[k] not in base_data[ALPHABET]:
+            break
+    if base_data[COMPLEMENT] is None:
+        if k == len(cipher) - 1:
+            return True
+        return False
+    for k in range(k, len(cipher)):
+        if cipher[k] not in base_data[COMPLEMENT]:
             return False
     return True
 
@@ -249,10 +249,10 @@ def main_cracker(cipher):
     if len(cipher) == 0:
         return ''
     for base_data in all_bases:
+        if not is_base(cipher, base_data):
+            print('Unknown char ' + base_data[1])
+            continue
         try:
-            if not is_base(cipher, base_data):
-                print('Unknown char ' + base_data[1])
-                continue
             plaintext = base_data[DECODER](cipher)
             print('Apply ' + base_data[1] + ': ' + plaintext)
             main_cracker(plaintext)
