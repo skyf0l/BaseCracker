@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import base64
 import sys
 import re
 import string
@@ -22,6 +21,41 @@ def int_to_base(num, base, size):
     encode += '0' * (size - len(encode))
     return encode[::-1]
 
+def cipher_padding(cipher):
+    cipher = cipher.replace(' ', '')
+    cipher = cipher.replace('\n', '')
+    return cipher
+
+# plaintext can is encoded in base x
+def is_base(cipher, base_data):
+    if base_data[0] == '16':
+        return is_base16(cipher)
+    cipher = cipher_padding(cipher)
+
+    for k in range(0, len(cipher)):
+        if cipher[k] not in base_data[ALPHABET]:
+            break
+    if base_data[COMPLEMENT] is None:
+        if k == len(cipher) - 1:
+            return True
+        return False
+    for k in range(k + 1, len(cipher)):
+        if cipher[k] not in base_data[COMPLEMENT]:
+            return False
+    return True
+
+def is_printable(plaintext):
+    total = 0
+    printable = 0
+
+    for c in plaintext:
+        if plaintext[total] in string.printable:
+            printable += 1
+        total += 1
+    if total == 0:
+        return 0
+    return printable / total
+
 # base2
 base2_alphabet = '01'
 def base2_encoder(plaintext):
@@ -32,6 +66,7 @@ def base2_encoder(plaintext):
 
 def base2_decoder(cipher):
     plaintext = ''
+    cipher = cipher_padding(cipher)
     tokens = split_by_size(cipher, 8)
     for token in tokens:
         plaintext += chr(int(token, 2))
@@ -48,9 +83,65 @@ def base16_encoder(plaintext):
 def base16_decoder(cipher):
     plaintext = ''
     cipher = cipher.lower()
+    cipher = cipher_padding(cipher)
     tokens = split_by_size(cipher, 2)
     for token in tokens:
         plaintext += chr(int(token, 16))
+    return plaintext
+def is_base16(cipher):
+    cipher = cipher.lower()
+    cipher = cipher_padding(cipher)
+    for c in cipher:
+        if c not in base16_alphabet:
+            return False
+    return True
+
+# base32
+base32_alphabet = string.ascii_uppercase + '234567'
+base32_complement = '='
+base32_nb_complements = [0, 6, 4, 3, 1]
+base32_padding_size = 5
+def base32_encoder(plaintext):
+    cipher = ''
+
+    # padding
+    nb_tokens = len(plaintext) // base32_padding_size * 8
+    if len(plaintext) % base32_padding_size != 0:
+        nb_tokens += 8 - base32_nb_complements[len(plaintext) % base32_padding_size]
+        plaintext += '\x00' * (base32_padding_size - (len(plaintext) % base32_padding_size))
+    base2_cipher = base2_encoder(plaintext)
+
+    tokens = split_by_size(base2_cipher, 5)
+    token_id = 0
+    for token in tokens:
+        if token_id >= nb_tokens:
+            cipher += base32_complement
+        elif len(token) == 5:
+            cipher += base32_alphabet[int(token, 2)]
+        else:
+            complement = base32_complement * ((5 - len(token)) // 2)
+            token += base2_alphabet[0] * (len(complement) * 2)
+            cipher += base32_alphabet[int(token, 2)]
+            cipher += complement
+        token_id += 1
+    return cipher
+
+def base32_decoder(cipher):
+    base2_plaintext = ''
+    nb_complements = 0
+    cipher = cipher_padding(cipher)
+    for c in cipher:
+        if c in base32_alphabet:
+            base2_plaintext += int_to_base(base32_alphabet.index(c), base2_alphabet, 5)
+        elif c in base32_complement:
+            base2_plaintext += '00000'
+            nb_complements += 1
+        else:
+            return None
+
+    plaintext = base2_decoder(base2_plaintext)
+    if nb_complements != 0 and nb_complements in base32_nb_complements:
+        plaintext = plaintext[:base32_nb_complements.index(nb_complements) - len(base32_nb_complements)]
     return plaintext
 
 # base64
@@ -73,6 +164,7 @@ def base64_encoder(plaintext):
 
 def base64_decoder(cipher):
     base2_plaintext = ''
+    cipher = cipher_padding(cipher)
     for c in cipher:
         if c in base64_alphabet:
             base2_plaintext += int_to_base(base64_alphabet.index(c), base2_alphabet, 6)
@@ -86,12 +178,17 @@ def base64_decoder(cipher):
 
 # base tab
 all_bases = [
-    ['2', 'base2', base2_encoder, base2_decoder],
-    ['16', 'base16', base16_encoder, base16_decoder],
-    ['64', 'base64', base64_encoder, base64_decoder]
+    ['2',  'base2',  base2_encoder,  base2_decoder,  base2_alphabet,  None],
+    ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
+    ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
+    ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement]
 ]
+NAME = 0
+FULL_NAME = 1
 ENCODER = 2
 DECODER = 3
+ALPHABET = 4
+COMPLEMENT = 5
 
 # get base functions
 def get_base_data(base_name):
@@ -163,7 +260,54 @@ def main_decoder(cipher, bases, display):
 
 # main cracker
 def main_cracker(cipher):
-    print('cracker')
+    find_one_decode = False
+    bases_order = []
+    bases_order.append([[None, cipher]])
+
+    while len(bases_order) != 0:
+        base_order = bases_order.pop(0)
+
+        cipher_in_work = base_order[0][1]
+
+        # empty cipher
+        if len(cipher_in_work) == 0:
+            continue
+
+        # test all bases
+        in_base = False
+        for base_data in all_bases:
+            if not is_base(cipher_in_work, base_data):
+                continue
+            # try to decode in base
+            try:
+                plaintext = base_data[DECODER](cipher_in_work)
+            except:
+                continue
+            if plaintext is None:
+                continue
+            # check if plaintext is printable
+            printable_percentage = is_printable(plaintext)
+            if printable_percentage > 0.90:
+                in_base = True
+                tmp_base_order = base_order[:]
+                tmp_base_order.insert(0, [base_data[FULL_NAME], plaintext])
+                bases_order.append(tmp_base_order)
+
+        # find one plaintext
+        decode_bases = []
+        if in_base == False and len(base_order) > 1:
+            if find_one_decode == True:
+                print('')
+            find_one_decode = True
+            print('Cipher: ' + base_order.pop()[1])
+            for base_id in range(len(base_order) - 1, -1, -1):
+                print('Apply ' + base_order[base_id][0] + ': ' + base_order[base_id][1])
+                decode_bases.append(base_order[base_id][0])
+            print('Decode order: ' + ','.join(decode_bases))
+            print('Plaintext: ' + base_order[0][1])
+
+    if find_one_decode == False:
+        print('Crack failed, no bases are compatible')
 
 # parse bases
 def parse_bases(bases_str):
