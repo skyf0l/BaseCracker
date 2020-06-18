@@ -206,10 +206,13 @@ def base85_encoder(plaintext):
     if len(plaintext) % 4 != 0:
         to_remove = 4 - len(plaintext) % 4
         plaintext += '\x00' * to_remove
-    tokens = split_by_size(plaintext, 4)
 
+    tokens = split_by_size(plaintext, 4)
     for token in tokens:
-        value = ord(token[0]) * 256 ** 3 + ord(token[1]) * 256 ** 2 + ord(token[2]) * 256 + ord(token[3])
+        value = 0
+        for c in token:
+            value *= 256
+            value += ord(c)
         tmp_cipher = ''
         for _ in range(5):
             tmp_cipher += base85_alphabet[value % 85]
@@ -221,6 +224,26 @@ def base85_encoder(plaintext):
 
 def base85_decoder(cipher):
     plaintext = ''
+
+    # padding
+    to_remove = 0
+    if len(cipher) % 5 != 0:
+        to_remove = 5 - len(cipher) % 5
+        cipher += 'u' * to_remove
+
+    tokens = split_by_size(cipher, 5)
+    for token in tokens:
+        value = 0
+        for c in token:
+            value *= 85
+            value += base85_alphabet.index(c)
+        tmp_plaintext = ''
+        for _ in range(4):
+            tmp_plaintext += chr(value % 256)
+            value //= 256
+        plaintext += tmp_plaintext[::-1]
+    if to_remove != 0:
+        plaintext = plaintext[0:-to_remove]
     return plaintext
 
 # base tab
