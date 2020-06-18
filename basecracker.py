@@ -39,10 +39,22 @@ def is_base(cipher, base_data):
         if k == len(cipher) - 1:
             return True
         return False
-    for k in range(k, len(cipher)):
+    for k in range(k + 1, len(cipher)):
         if cipher[k] not in base_data[COMPLEMENT]:
             return False
     return True
+
+def is_printable(plaintext):
+    total = 0
+    printable = 0
+
+    for c in plaintext:
+        if plaintext[total] in string.printable:
+            printable += 1
+        total += 1
+    if total == 0:
+        return 0
+    return printable / total
 
 # base2
 base2_alphabet = '01'
@@ -250,11 +262,12 @@ def main_cracker(cipher):
         return ''
     for base_data in all_bases:
         if not is_base(cipher, base_data):
-            print('Unknown char ' + base_data[1])
+            print('Unknown char ' + base_data[1] + ' in ' + cipher)
             continue
         try:
             plaintext = base_data[DECODER](cipher)
             print('Apply ' + base_data[1] + ': ' + plaintext)
+            print(str(is_printable(plaintext)) + '%')
             main_cracker(plaintext)
         except:
             print('Crash ' + base_data[1])
