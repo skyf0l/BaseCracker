@@ -140,7 +140,7 @@ def base32_decoder(cipher):
             return None
 
     plaintext = base2_decoder(base2_plaintext)
-    if nb_complements in base32_nb_complements:
+    if nb_complements != 0 and nb_complements in base32_nb_complements:
         plaintext = plaintext[:base32_nb_complements.index(nb_complements) - len(base32_nb_complements)]
     return plaintext
 
