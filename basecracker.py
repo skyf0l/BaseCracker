@@ -148,10 +148,28 @@ def base32_decoder(cipher):
 base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 def base58_encoder(plaintext):
     cipher = ''
+
+    value = 0
+    for c in plaintext:
+        value *= 256
+        value += ord(c)
+    while value != 0:
+        cipher += base58_alphabet[value % 58]
+        value //= 58
+    cipher = cipher[::-1]
     return cipher
 
 def base58_decoder(cipher):
     plaintext = ''
+
+    value = 0
+    for c in cipher:
+        value *= 58
+        value += base58_alphabet.index(c)
+    while value != 0:
+        plaintext += chr(value % 256)
+        value //= 256
+    plaintext = plaintext[::-1]
     return plaintext
 
 # base62
@@ -251,6 +269,7 @@ all_bases = [
     ['2',  'base2',  base2_encoder,  base2_decoder,  base2_alphabet,  None],
     ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
     ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
+    ['58', 'base58', base58_encoder, base58_decoder, base58_alphabet, None],
     ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement],
     ['85', 'base85', base85_encoder, base85_decoder, base85_alphabet, None]
 ]

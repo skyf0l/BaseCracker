@@ -23,6 +23,16 @@ base32_expected = [
     ['abcdef', 'MFRGGZDFMY======']
 ]
 
+base58_expected = [
+    ['123456 randouum!', '75M7MfQsAnc4wKJkVQdjwn'],
+    ['a', '2g'],
+    ['ab', '8Qq'],
+    ['abc', 'ZiCa'],
+    ['abcd', '3VNr6P'],
+    ['abcde', 'BzFRgmr'],
+    ['abcdef', 'qVgfxYy3']
+]
+
 base62_expected = [
     ['123456 randouum!', '1UpZ3kvt16KIrvCp8CtL4D'],
     ['a', '1Z'],
@@ -90,6 +100,19 @@ class TestEncoderDecoder(unittest.TestCase):
         global base32_expected
         for expected in base32_expected:
             plaintext = bc.base32_decoder(expected[1])
+            self.assertEqual(plaintext, expected[0])
+
+    # test base58
+    def test_base58_encoder(self):
+        global base58_expected
+        for expected in base58_expected:
+            cipher = bc.base58_encoder(expected[0])
+            self.assertEqual(cipher, expected[1])
+
+    def test_base58_decoder(self):
+        global base58_expected
+        for expected in base58_expected:
+            plaintext = bc.base58_decoder(expected[1])
             self.assertEqual(plaintext, expected[0])
 
     # test base62
