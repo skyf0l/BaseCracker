@@ -183,6 +183,8 @@ all_bases = [
     ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
     ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement]
 ]
+NAME = 0
+FULL_NAME = 1
 ENCODER = 2
 DECODER = 3
 ALPHABET = 4
@@ -258,19 +260,54 @@ def main_decoder(cipher, bases, display):
 
 # main cracker
 def main_cracker(cipher):
-    if len(cipher) == 0:
-        return ''
-    for base_data in all_bases:
-        if not is_base(cipher, base_data):
-            print('Unknown char ' + base_data[1] + ' in ' + cipher)
+    find_one_decode = False
+    bases_order = []
+    bases_order.append([[None, cipher]])
+
+    while len(bases_order) != 0:
+        base_order = bases_order.pop(0)
+
+        cipher_in_work = base_order[0][1]
+
+        # empty cipher
+        if len(cipher_in_work) == 0:
             continue
-        try:
-            plaintext = base_data[DECODER](cipher)
-            print('Apply ' + base_data[1] + ': ' + plaintext)
-            print(str(is_printable(plaintext)) + '%')
-            main_cracker(plaintext)
-        except:
-            print('Crash ' + base_data[1])
+
+        # test all bases
+        in_base = False
+        for base_data in all_bases:
+            if not is_base(cipher_in_work, base_data):
+                continue
+            # try to decode in base
+            try:
+                plaintext = base_data[DECODER](cipher_in_work)
+            except:
+                continue
+            if plaintext is None:
+                continue
+            # check if plaintext is printable
+            printable_percentage = is_printable(plaintext)
+            if printable_percentage > 0.90:
+                in_base = True
+                tmp_base_order = base_order[:]
+                tmp_base_order.insert(0, [base_data[FULL_NAME], plaintext])
+                bases_order.append(tmp_base_order)
+
+        # find one plaintext
+        decode_bases = []
+        if in_base == False and len(base_order) > 1:
+            if find_one_decode == True:
+                print('')
+            find_one_decode = True
+            print('Cipher: ' + base_order.pop()[1])
+            for base_id in range(len(base_order) - 1, -1, -1):
+                print('Apply ' + base_order[base_id][0] + ': ' + base_order[base_id][1])
+                decode_bases.append(base_order[base_id][0])
+            print('Decode order: ' + ','.join(decode_bases))
+            print('Plaintext: ' + base_order[0][1])
+
+    if find_one_decode == False:
+        print('Crack failed, no bases are compatible')
 
 # parse bases
 def parse_bases(bases_str):
