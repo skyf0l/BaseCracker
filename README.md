@@ -9,6 +9,7 @@ An awesome tool to crack some random bases in CTF
 - base16 / hexadecimal
 - base32
 - base64
+- base85
 
 ## Installation
 

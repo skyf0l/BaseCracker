@@ -144,6 +144,26 @@ def base32_decoder(cipher):
         plaintext = plaintext[:base32_nb_complements.index(nb_complements) - len(base32_nb_complements)]
     return plaintext
 
+# base58
+base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+def base58_encoder(plaintext):
+    cipher = ''
+    return cipher
+
+def base58_decoder(cipher):
+    plaintext = ''
+    return plaintext
+
+# base62
+base62_alphabet = string.digits + string.ascii_uppercase + string.ascii_lowercase
+def base62_encoder(plaintext):
+    cipher = ''
+    return cipher
+
+def base62_decoder(cipher):
+    plaintext = ''
+    return plaintext
+
 # base64
 base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
 base64_complement = '='
@@ -176,12 +196,63 @@ def base64_decoder(cipher):
     plaintext = base2_decoder(base2_plaintext)
     return plaintext
 
+# base85
+base85_alphabet = '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu'
+def base85_encoder(plaintext):
+    cipher = ''
+
+    # padding
+    to_remove = 0
+    if len(plaintext) % 4 != 0:
+        to_remove = 4 - len(plaintext) % 4
+        plaintext += '\x00' * to_remove
+
+    tokens = split_by_size(plaintext, 4)
+    for token in tokens:
+        value = 0
+        for c in token:
+            value *= 256
+            value += ord(c)
+        tmp_cipher = ''
+        for _ in range(5):
+            tmp_cipher += base85_alphabet[value % 85]
+            value //= 85
+        cipher += tmp_cipher[::-1]
+    if to_remove != 0:
+        cipher = cipher[0:-to_remove]
+    return cipher
+
+def base85_decoder(cipher):
+    plaintext = ''
+
+    # padding
+    to_remove = 0
+    if len(cipher) % 5 != 0:
+        to_remove = 5 - len(cipher) % 5
+        cipher += 'u' * to_remove
+
+    tokens = split_by_size(cipher, 5)
+    for token in tokens:
+        value = 0
+        for c in token:
+            value *= 85
+            value += base85_alphabet.index(c)
+        tmp_plaintext = ''
+        for _ in range(4):
+            tmp_plaintext += chr(value % 256)
+            value //= 256
+        plaintext += tmp_plaintext[::-1]
+    if to_remove != 0:
+        plaintext = plaintext[0:-to_remove]
+    return plaintext
+
 # base tab
 all_bases = [
     ['2',  'base2',  base2_encoder,  base2_decoder,  base2_alphabet,  None],
     ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
     ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
-    ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement]
+    ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement],
+    ['85', 'base85', base85_encoder, base85_decoder, base85_alphabet, None]
 ]
 NAME = 0
 FULL_NAME = 1
