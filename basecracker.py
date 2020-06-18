@@ -144,6 +144,26 @@ def base32_decoder(cipher):
         plaintext = plaintext[:base32_nb_complements.index(nb_complements) - len(base32_nb_complements)]
     return plaintext
 
+# base58 or base58_bitcoin
+base58_alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+def base58_encoder(plaintext):
+    cipher = ''
+    return cipher
+
+def base58_decoder(cipher):
+    plaintext = ''
+    return plaintext
+
+# base62
+base62_alphabet = string.digits + string.ascii_uppercase + string.ascii_lowercase
+def base62_encoder(plaintext):
+    cipher = ''
+    return cipher
+
+def base62_decoder(cipher):
+    plaintext = ''
+    return plaintext
+
 # base64
 base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
 base64_complement = '='
@@ -174,6 +194,16 @@ def base64_decoder(cipher):
             return None
 
     plaintext = base2_decoder(base2_plaintext)
+    return plaintext
+
+# base85
+base85_alphabet = string.digits + string.ascii_uppercase + string.ascii_lowercase
+def base85_encoder(plaintext):
+    cipher = ''
+    return cipher
+
+def base85_decoder(cipher):
+    plaintext = ''
     return plaintext
 
 # base tab
