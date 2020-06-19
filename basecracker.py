@@ -421,12 +421,14 @@ def main_cracker(cipher):
         decode_bases = []
         if in_base == False and len(base_order) > 1:
             if find_one_decode == True:
-                print('')
+                print('\n----------------\n')
             find_one_decode = True
             print('Cipher: ' + base_order.pop()[1])
+            print('')
             for base_id in range(len(base_order) - 1, -1, -1):
                 print('Apply ' + base_order[base_id][0] + ': ' + base_order[base_id][1])
                 decode_bases.append(base_order[base_id][0])
+            print('')
             print('Decode order: ' + ','.join(decode_bases))
             print('Plaintext: ' + base_order[0][1])
 
