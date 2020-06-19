@@ -72,6 +72,18 @@ def base2_decoder(cipher):
         plaintext += chr(int(token, 2))
     return plaintext
 
+# base10
+base10_alphabet = string.digits
+def base10_encoder(plaintext):
+    plaintext_hex = plaintext.encode().hex()
+    cipher = str(int(plaintext_hex, 16))
+    return cipher
+
+def base10_decoder(cipher):
+    cipher_hex = hex(int(cipher))[2:]
+    plaintext = bytes.fromhex(cipher_hex).decode('utf-8')
+    return plaintext
+
 # base16
 base16_alphabet = '0123456789abcdef'
 def base16_encoder(plaintext):
@@ -287,6 +299,7 @@ def base85_decoder(cipher):
 # base tab
 all_bases = [
     ['2',  'base2',  base2_encoder,  base2_decoder,  base2_alphabet,  None],
+    ['10',  'base10',  base10_encoder,  base10_decoder,  base10_alphabet,  None],
     ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
     ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
     ['58', 'base58', base58_encoder, base58_decoder, base58_alphabet, None],

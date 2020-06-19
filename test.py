@@ -8,6 +8,14 @@ base2_expected = [
     ['123456 randouum!', '00110001001100100011001100110100001101010011011000100000011100100110000101101110011001000110111101110101011101010110110100100001']
 ]
 
+base10_expected = [
+    ['123456 randouum!', '65392825175609996871117661092674104609'],
+    ['a', '97'],
+    ['ab', '24930'],
+    ['abc', '6382179'],
+    ['abcd', '1633837924']
+]
+
 base16_expected = [
     ['qwerty', '717765727479'],
     ['123456 randouum!', '3132333435362072616e646f75756d21']
@@ -74,6 +82,19 @@ class TestEncoderDecoder(unittest.TestCase):
         global base2_expected
         for expected in base2_expected:
             plaintext = bc.base2_decoder(expected[1])
+            self.assertEqual(plaintext, expected[0])
+
+    # test base10
+    def test_base10_encoder(self):
+        global base10_expected
+        for expected in base10_expected:
+            cipher = bc.base10_encoder(expected[0])
+            self.assertEqual(cipher, expected[1])
+
+    def test_base10_decoder(self):
+        global base10_expected
+        for expected in base10_expected:
+            plaintext = bc.base10_decoder(expected[1])
             self.assertEqual(plaintext, expected[0])
 
     # test base16
