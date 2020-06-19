@@ -18,7 +18,8 @@ def int_to_base(num, base, size):
     while num:
         encode += base[num % len(base)]
         num //= len(base)
-    encode += '0' * (size - len(encode))
+    if size != -1:
+        encode += '0' * (size - len(encode))
     return encode[::-1]
 
 def cipher_padding(cipher):
@@ -155,6 +156,20 @@ def base32_decoder(cipher):
     plaintext = base2_decoder(base2_plaintext)
     if nb_complements != 0 and nb_complements in base32_nb_complements:
         plaintext = plaintext[:base32_nb_complements.index(nb_complements) - len(base32_nb_complements)]
+    return plaintext
+
+# base36
+base36_alphabet = string.digits + string.ascii_lowercase
+def base36_encoder(plaintext):
+    plaintext_hex = plaintext.encode().hex()
+    plaintext_dec = int(plaintext_hex, 16)
+    cipher = int_to_base(plaintext_dec, base36_alphabet, -1)
+    return cipher
+
+def base36_decoder(cipher):
+    cipher = cipher.lower()
+    cipher_hex = hex(int(cipher, 36))[2:]
+    plaintext = bytes.fromhex(cipher_hex).decode('utf-8')
     return plaintext
 
 # base58
@@ -303,6 +318,7 @@ all_bases = [
     ['10',  'base10',  base10_encoder,  base10_decoder,  base10_alphabet,  None],
     ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
     ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
+    ['36', 'base36', base36_encoder, base36_decoder, base36_alphabet, None],
     ['58', 'base58', base58_encoder, base58_decoder, base58_alphabet, None],
     ['62', 'base62', base62_encoder, base62_decoder, base62_alphabet, None],
     ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement],
