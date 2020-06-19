@@ -29,8 +29,8 @@ def cipher_padding(cipher):
 
 # plaintext can is encoded in base x
 def is_base(cipher, base_data):
-    if base_data[0] == '16':
-        return is_base16(cipher)
+    if base_data[0] in ['16', '36']:
+        cipher = cipher.lower()
     cipher = cipher_padding(cipher)
 
     k = 0
@@ -102,13 +102,6 @@ def base16_decoder(cipher):
     for token in tokens:
         plaintext += chr(int(token, 16))
     return plaintext
-def is_base16(cipher):
-    cipher = cipher.lower()
-    cipher = cipher_padding(cipher)
-    for c in cipher:
-        if c not in base16_alphabet:
-            return False
-    return True
 
 # base32
 base32_alphabet = string.ascii_uppercase + '234567'
