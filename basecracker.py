@@ -146,6 +146,7 @@ def base32_decoder(cipher):
 
 # base58
 base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+base58_len = len(base58_alphabet)
 def base58_encoder(plaintext):
     cipher = ''
 
@@ -154,8 +155,8 @@ def base58_encoder(plaintext):
         value *= 256
         value += ord(c)
     while value != 0:
-        cipher += base58_alphabet[value % 58]
-        value //= 58
+        cipher += base58_alphabet[value % base58_len]
+        value //= base58_len
     cipher = cipher[::-1]
     return cipher
 
@@ -164,7 +165,7 @@ def base58_decoder(cipher):
 
     value = 0
     for c in cipher:
-        value *= 58
+        value *= base58_len
         value += base58_alphabet.index(c)
     while value != 0:
         plaintext += chr(value % 256)
@@ -174,12 +175,31 @@ def base58_decoder(cipher):
 
 # base62
 base62_alphabet = string.digits + string.ascii_uppercase + string.ascii_lowercase
+base62_len = len(base62_alphabet)
 def base62_encoder(plaintext):
     cipher = ''
+
+    value = 0
+    for c in plaintext:
+        value *= 256
+        value += ord(c)
+    while value != 0:
+        cipher += base62_alphabet[value % base62_len]
+        value //= base62_len
+    cipher = cipher[::-1]
     return cipher
 
 def base62_decoder(cipher):
     plaintext = ''
+
+    value = 0
+    for c in cipher:
+        value *= base62_len
+        value += base62_alphabet.index(c)
+    while value != 0:
+        plaintext += chr(value % 256)
+        value //= 256
+    plaintext = plaintext[::-1]
     return plaintext
 
 # base64
@@ -270,6 +290,7 @@ all_bases = [
     ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
     ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
     ['58', 'base58', base58_encoder, base58_decoder, base58_alphabet, None],
+    ['62', 'base62', base62_encoder, base62_decoder, base62_alphabet, None],
     ['64', 'base64', base64_encoder, base64_decoder, base64_alphabet, base64_complement],
     ['85', 'base85', base85_encoder, base85_decoder, base85_alphabet, None]
 ]
