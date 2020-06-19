@@ -32,6 +32,7 @@ def is_base(cipher, base_data):
         return is_base16(cipher)
     cipher = cipher_padding(cipher)
 
+    k = 0
     for k in range(0, len(cipher)):
         if cipher[k] not in base_data[ALPHABET]:
             break
