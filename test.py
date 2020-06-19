@@ -116,7 +116,6 @@ class TestEncoderDecoder(unittest.TestCase):
             self.assertEqual(plaintext, expected[0])
 
     # test base62
-    """
     def test_base62_encoder(self):
         global base62_expected
         for expected in base62_expected:
@@ -128,7 +127,7 @@ class TestEncoderDecoder(unittest.TestCase):
         for expected in base62_expected:
             plaintext = bc.base62_decoder(expected[1])
             self.assertEqual(plaintext, expected[0])
-    """
+
     # test base64
     def test_base64_encoder(self):
         global base64_expected
