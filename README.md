@@ -1,6 +1,7 @@
 # BaseCracker
 
 Encoder, Decoder and Cracker for many Bases
+
 An awesome tool to crack some random bases in CTF
 
 ## Supported bases
