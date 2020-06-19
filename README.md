@@ -10,6 +10,7 @@ An awesome tool to crack some random bases in CTF
 - base10 / decimal
 - base16 / hexadecimal
 - base32
+- base36
 - base58
 - base62
 - base64
