@@ -8,6 +8,11 @@ base2_expected = [
     ['123456 randouum!', '00110001001100100011001100110100001101010011011000100000011100100110000101101110011001000110111101110101011101010110110100100001']
 ]
 
+base2_7_expected = [
+    ['qwerty', '111000111101111100101111001011101001111001'],
+    ['123456 randouum!', '0110001011001001100110110100011010101101100100000111001011000011101110110010011011111110101111010111011010100001']
+]
+
 base10_expected = [
     ['123456 randouum!', '65392825175609996871117661092674104609'],
     ['a', '97'],
@@ -77,6 +82,16 @@ base85_expected = [
     ['abcdef', '@:E_WAS(']
 ]
 
+base91_expected = [
+    ['123456 randouum!', '0etOA2)ZRt@;]UoF`hOE'],
+    ['a', '@/'],
+    ['ab', '@:B'],
+    ['abc', '@:E^'],
+    ['abcd', '@:E_W'],
+    ['abcde', '@:E_WAH'],
+    ['abcdef', '@:E_WAS(']
+]
+
 class TestEncoderDecoder(unittest.TestCase):
 
     # test base2
@@ -90,6 +105,19 @@ class TestEncoderDecoder(unittest.TestCase):
         global base2_expected
         for expected in base2_expected:
             plaintext = bc.base2_decoder(expected[1])
+            self.assertEqual(plaintext, expected[0])
+
+    # test base2-7
+    def test_base2_7_encoder(self):
+        global base2_7_expected
+        for expected in base2_7_expected:
+            cipher = bc.base2_7_encoder(expected[0])
+            self.assertEqual(cipher, expected[1])
+
+    def test_base2_7_decoder(self):
+        global base2_7_expected
+        for expected in base2_7_expected:
+            plaintext = bc.base2_7_decoder(expected[1])
             self.assertEqual(plaintext, expected[0])
 
     # test base10
@@ -195,6 +223,21 @@ class TestEncoderDecoder(unittest.TestCase):
         for expected in base85_expected:
             plaintext = bc.base85_decoder(expected[1])
             self.assertEqual(plaintext, expected[0])
+
+    # test base91
+    '''
+    def test_base91_encoder(self):
+        global base91_expected
+        for expected in base91_expected:
+            cipher = bc.base91_encoder(expected[0])
+            self.assertEqual(cipher, expected[1])
+
+    def test_base91_decoder(self):
+        global base91_expected
+        for expected in base91_expected:
+            plaintext = bc.base91_decoder(expected[1])
+            self.assertEqual(plaintext, expected[0])
+    '''
 
 if __name__ == '__main__':
     unittest.main()

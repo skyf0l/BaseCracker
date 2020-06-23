@@ -74,6 +74,21 @@ def base2_decoder(cipher):
         plaintext += chr(int(token, 2))
     return plaintext
 
+# base2-7
+def base2_7_encoder(plaintext):
+    cipher = ''
+    for c in plaintext:
+        cipher += int_to_base(ord(c), base2_alphabet, 7)
+    return cipher
+
+def base2_7_decoder(cipher):
+    plaintext = ''
+    cipher = cipher_padding(cipher)
+    tokens = split_by_size(cipher, 7)
+    for token in tokens:
+        plaintext += chr(int(token, 2))
+    return plaintext
+
 # base10
 base10_alphabet = string.digits
 def base10_encoder(plaintext):
@@ -308,6 +323,7 @@ def base85_decoder(cipher):
 # base tab
 all_bases = [
     ['2',  'base2',  base2_encoder,  base2_decoder,  base2_alphabet,  None],
+    ['2-7',  'base2-7',  base2_7_encoder,  base2_7_decoder,  base2_alphabet,  None],
     ['10',  'base10',  base10_encoder,  base10_decoder,  base10_alphabet,  None],
     ['16', 'base16', base16_encoder, base16_decoder, base16_alphabet, None],
     ['32', 'base32', base32_encoder, base32_decoder, base32_alphabet, base32_complement],
