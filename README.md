@@ -6,7 +6,7 @@ An awesome tool to crack some random bases in CTF
 
 ## Supported bases
 
-- base2 / binary
+- base2 / binary (padding by 7 or 8)
 - base10 / decimal
 - base16 / hexadecimal
 - base32
