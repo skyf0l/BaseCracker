@@ -1,0 +1,13 @@
+[package]
+name = "basecracker"
+version = "0.1.0"
+authors = ["skyf0l"]
+edition = "2018"
+description = "Rust crate for the E621 API (a large online archive of furry art)."
+repository = "https://github.com/skyf0l/BaseCracker"
+readme = "README.md"
+keywords = ["cracker", "base64", "hex", "ctf"]
+categories = ["ctf-tools"]
+# license = ""
+
+[dependencies]
