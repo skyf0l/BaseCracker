@@ -1,6 +1,8 @@
 pub struct Base32;
 
-impl super::Base for Base32 {
+use super::Base;
+
+impl Base for Base32 {
     fn encode(&self, decoded: &String) -> Result<String, Box<dyn std::error::Error>> {
         println!("base32 encode: {}", decoded);
         Ok(decoded.to_string())

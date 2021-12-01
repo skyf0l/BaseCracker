@@ -1,4 +1,5 @@
 pub struct Hex;
+
 use super::Base;
 
 impl Base for Hex {
@@ -21,23 +22,22 @@ impl Base for Hex {
 
 #[cfg(test)]
 mod tests {
-    use super::super::Base;
-    use super::Hex;
+    use super::*;
 
     #[test]
     fn test_encode() {
-        let hex = Hex;
+        let base = Hex;
         assert_eq!(
-            hex.encode(&String::from("Hello World!")).unwrap(),
+            base.encode(&String::from("Hello World!")).unwrap(),
             "48656c6c6f20576f726c6421"
         );
     }
 
     #[test]
     fn test_decode() {
-        let hex = Hex;
+        let base = Hex;
         assert_eq!(
-            hex.decode(&String::from("48656c6c6f20576f726c6421"))
+            base.decode(&String::from("48656c6c6f20576f726c6421"))
                 .unwrap(),
             "Hello World!"
         );

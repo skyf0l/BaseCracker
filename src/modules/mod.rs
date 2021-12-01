@@ -1,11 +1,9 @@
-pub mod utils;
-
 pub mod module_base2;
 pub mod module_base32;
 pub mod module_base64;
 pub mod module_hex;
 
-pub use utils::*;
+mod utils;
 
 pub trait Base {
     fn encode(&self, decoded: &String) -> Result<String, Box<dyn std::error::Error>>;

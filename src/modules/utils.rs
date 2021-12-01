@@ -65,6 +65,7 @@ pub fn to_base(n: &Integer, base: &String, block_size: Option<usize>) -> String 
     result.chars().rev().collect()
 }
 
+#[macro_export]
 macro_rules! to_base {
     ($n:expr, $base:expr, $block_size:expr) => {
         to_base(&$n, &$base, Some($block_size))
