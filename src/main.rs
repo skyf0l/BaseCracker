@@ -1,4 +1,4 @@
-mod lib;
+use basecracker;
 
 fn main() {
     // get args
@@ -9,5 +9,5 @@ fn main() {
         println!("Usage: {} <cipher>", args[0]);
         return;
     }
-    lib::basecracker::basecracker(&args[1]);
+    basecracker::basecracker(&args[1]);
 }
