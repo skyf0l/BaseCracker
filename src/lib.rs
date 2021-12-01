@@ -1,2 +1,4 @@
-#[path = "basecracker/mod.rs"]
-pub mod basecracker;
+mod basecracker;
+pub mod modules;
+
+pub use basecracker::basecracker;
