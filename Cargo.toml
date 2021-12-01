@@ -11,3 +11,8 @@ categories = ["ctf-tools"]
 # license = ""
 
 [dependencies]
+
+[dependencies.rug]
+version = "1.14"
+default-features = false
+features = ["integer"]

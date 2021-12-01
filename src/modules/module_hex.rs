@@ -21,7 +21,8 @@ impl Base for Hex {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::super::Base;
+    use super::Hex;
 
     #[test]
     fn test_encode() {
