@@ -1,17 +1,26 @@
 pub struct Base2;
 
+use crate::to_base;
+
 use super::utils::*;
 use super::Base;
 
 impl Base for Base2 {
-    fn encode(&self, decoded: &String) -> Result<String, Box<dyn std::error::Error>> {
-        let n = decoded.to_integer();
-        let encoded = to_base(&n, &"01".to_string(), Some(8));
+    fn get_name(&self) -> &'static str {
+        "base2"
+    }
+    fn get_short_name(&self) -> &'static str {
+        "b2"
+    }
+    fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let n = str_to_int(decoded);
+        let encoded = to_base!(&n, &"01".to_string(), 8);
         Ok(encoded)
     }
-    fn decode(&self, encoded: &String) -> Result<String, Box<dyn std::error::Error>> {
-        println!("base2 decode: {}", encoded);
-        Ok(encoded.to_string())
+    fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let n = from_base(&encoded, &"01".to_string());
+        let decoded = int_to_str(&n);
+        Ok(decoded.to_string())
     }
 }
 

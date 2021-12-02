@@ -6,8 +6,10 @@ pub mod module_hex;
 mod utils;
 
 pub trait Base {
-    fn encode(&self, decoded: &String) -> Result<String, Box<dyn std::error::Error>>;
-    fn decode(&self, encoded: &String) -> Result<String, Box<dyn std::error::Error>>;
+    fn get_name(&self) -> &'static str;
+    fn get_short_name(&self) -> &'static str;
+    fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>>;
+    fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>>;
 }
 
 pub fn get_bases() -> Vec<Box<dyn Base>> {

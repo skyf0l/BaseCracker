@@ -5,7 +5,7 @@ pub trait PackedBy<T> {
     fn packed_by(&self, len: usize) -> Vec<T>;
 }
 
-impl PackedBy<String> for String {
+impl PackedBy<String> for &str {
     fn packed_by(&self, len: usize) -> Vec<String> {
         let mut result = Vec::new();
         for i in (0..self.len()).step_by(len) {
@@ -15,41 +15,26 @@ impl PackedBy<String> for String {
     }
 }
 
-impl PackedBy<String> for str {
-    fn packed_by(&self, len: usize) -> Vec<String> {
-        let mut result = Vec::new();
-        for i in (0..self.len()).step_by(len) {
-            result.push(self[i..cmp::min(i + len, self.len())].to_string());
-        }
-        result
+pub fn str_to_int(s: &str) -> Integer {
+    let mut result = Integer::from(0);
+    for c in s.chars() {
+        result = result * 256 + Integer::from(c as u32);
     }
+    result
 }
 
-pub trait ToInteger {
-    fn to_integer(&self) -> Integer;
-}
-
-impl ToInteger for String {
-    fn to_integer(&self) -> Integer {
-        let mut result = Integer::from(0);
-        for c in self.chars() {
-            result = result * 256 + Integer::from(c as u32);
-        }
-        result
+pub fn int_to_str(n: &Integer) -> String {
+    let mut result = String::new();
+    let mut tmp_n = n.clone();
+    while tmp_n > Integer::from(0) {
+        let (q, r) = tmp_n.div_rem(Integer::from(256));
+        result.push(r.to_i32().unwrap() as u8 as char);
+        tmp_n = q;
     }
+    result.chars().rev().collect()
 }
 
-impl ToInteger for str {
-    fn to_integer(&self) -> Integer {
-        let mut result = Integer::from(0);
-        for c in self.chars() {
-            result = result * 256 + Integer::from(c as u32);
-        }
-        result
-    }
-}
-
-pub fn to_base(n: &Integer, base: &String, block_size: Option<usize>) -> String {
+pub fn to_base(n: &Integer, base: &str, block_size: Option<usize>) -> String {
     let block_size = block_size.unwrap_or(1);
 
     let mut result = String::new();
@@ -75,7 +60,7 @@ macro_rules! to_base {
     };
 }
 
-pub fn from_base(s: &String, base: &String) -> Integer {
+pub fn from_base(s: &str, base: &str) -> Integer {
     let mut result = Integer::from(0);
     let mut power = Integer::from(1);
     for c in s.chars().rev() {
@@ -119,44 +104,27 @@ mod tests {
     }
 
     #[test]
-    fn test_string_packed_by_3_1() {
-        let s = "abcdef".to_string();
-        let result = s.packed_by(3);
-        assert_eq!(result.len(), 2);
-        assert_eq!(result[0], "abc");
-        assert_eq!(result[1], "def");
-    }
-
-    #[test]
-    fn test_string_packed_by_3_2() {
-        let s = "abcdefg".to_string();
-        let result = s.packed_by(3);
-        assert_eq!(result.len(), 3);
-        assert_eq!(result[0], "abc");
-        assert_eq!(result[1], "def");
-        assert_eq!(result[2], "g");
-    }
-
-    #[test]
-    fn test_string_packed_by_3_3() {
-        let s = "abcdefgh".to_string();
-        let result = s.packed_by(3);
-        assert_eq!(result.len(), 3);
-        assert_eq!(result[0], "abc");
-        assert_eq!(result[1], "def");
-        assert_eq!(result[2], "gh");
-    }
-
-    #[test]
     fn test_to_integer_1() {
-        let result = "Hello World!".to_integer();
+        let result = str_to_int("Hello World!");
         assert_eq!(result, Integer::from(22405534230753928650781647905 as u128));
     }
 
     #[test]
     fn test_to_integer_2() {
-        let result = "BaseCracker".to_integer();
+        let result = str_to_int("BaseCracker");
         assert_eq!(result, Integer::from(80249302315773941590484338 as u128));
+    }
+
+    #[test]
+    fn test_to_string_1() {
+        let result = int_to_str(&Integer::from(22405534230753928650781647905 as u128));
+        assert_eq!(result, "Hello World!");
+    }
+
+    #[test]
+    fn test_to_string_2() {
+        let result = int_to_str(&Integer::from(80249302315773941590484338 as u128));
+        assert_eq!(result, "BaseCracker");
     }
 
     #[test]
