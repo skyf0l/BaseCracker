@@ -10,5 +10,6 @@ pub fn basecracker(cipher: &String) -> String {
             Err(e) => println!("{}", e),
         }
     }
+    println!("{}", result);
     result
 }
