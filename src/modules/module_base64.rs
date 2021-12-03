@@ -28,7 +28,7 @@ impl Base for Base64 {
                 let chunk_value = chunk_value << (6 - chunk.len());
                 encoded.push(BASE.chars().nth(chunk_value).unwrap());
 
-                let padding = (6 - chunk.len()) / 2;
+                let padding = 4 - encoded.len() % 4;
                 for _ in 0..padding {
                     encoded.push_str(PADDING);
                 }

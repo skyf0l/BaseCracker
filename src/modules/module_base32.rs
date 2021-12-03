@@ -7,17 +7,6 @@ use super::Base;
 const BASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const PADDING: &str = "=";
 
-
-/*
-01100001
-01100001 01100010
-01100001 01100010 01100011
-01100001 01100010 01100011 01100100
-01100001 01100010 01100011 01100100 01100101
-
-01100 00101 10001 00110 00110 11001 00011 00101
-*/
-
 impl Base for Base32 {
     fn get_name(&self) -> &'static str {
         "base32"
@@ -39,7 +28,7 @@ impl Base for Base32 {
                 let chunk_value = chunk_value << (5 - chunk.len());
                 encoded.push(BASE.chars().nth(chunk_value).unwrap());
 
-                let padding = 5 - chunk.len();
+                let padding = 8 - encoded.len() % 8;
                 for _ in 0..padding {
                     encoded.push_str(PADDING);
                 }
