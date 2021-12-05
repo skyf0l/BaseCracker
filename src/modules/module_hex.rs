@@ -1,6 +1,6 @@
 pub struct Hex;
 
-use super::Base;
+use super::*;
 
 impl Base for Hex {
     fn get_name(&self) -> &'static str {
@@ -10,19 +10,10 @@ impl Base for Hex {
         "h"
     }
     fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let mut encoded = String::new();
-        for c in decoded.chars() {
-            encoded.push_str(&format!("{:02x}", c as u8));
-        }
-        Ok(encoded)
+        encode_decimal(decoded, "0123456789abcdef", 2)
     }
     fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let mut decoded = String::new();
-        for i in (0..encoded.len()).step_by(2) {
-            let c = u8::from_str_radix(&encoded[i..i + 2], 16)?;
-            decoded.push(c as char);
-        }
-        Ok(decoded)
+        decode_decimal(encoded, "0123456789abcdef")
     }
 }
 

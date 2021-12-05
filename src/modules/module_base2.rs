@@ -1,7 +1,6 @@
 pub struct Base2;
 
-use super::utils::*;
-use super::Base;
+use super::*;
 
 impl Base for Base2 {
     fn get_name(&self) -> &'static str {
@@ -11,14 +10,10 @@ impl Base for Base2 {
         "b2"
     }
     fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let n = str_to_int(decoded);
-        let encoded = to_base(&n, &"01".to_string(), 8);
-        Ok(encoded)
+        encode_decimal(decoded, "01", 8)
     }
     fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let n = from_base(&encoded, &"01".to_string())?;
-        let decoded = int_to_str(&n);
-        Ok(decoded.to_string())
+        decode_decimal(encoded, "01")
     }
 }
 
