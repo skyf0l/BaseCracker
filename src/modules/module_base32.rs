@@ -66,7 +66,7 @@ impl Base for Base32 {
             } else {
                 return Err(Box::new(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
-                    "Invalid character in base64 string",
+                    "Invalid character in base32 string",
                 )));
             }
         }
