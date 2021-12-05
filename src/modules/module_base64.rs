@@ -4,9 +4,6 @@ use super::module_base2::Base2;
 use super::utils::*;
 use super::*;
 
-const BASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const PADDING: &str = "=";
-
 impl Base for Base64 {
     fn get_name(&self) -> &'static str {
         "base64"
@@ -14,20 +11,36 @@ impl Base for Base64 {
     fn get_short_name(&self) -> &'static str {
         "b64"
     }
+    fn get_base(&self) -> &'static str {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    }
+    fn get_padding(&self) -> Option<&'static str> {
+        Some("=")
+    }
     fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
-        encode_abstract(decoded, BASE, PADDING, 6, 4)
+        let padding = match self.get_padding() {
+            Some(c) => c,
+            None => Err("No complement")?,
+        };
+
+        encode_abstract(decoded, self.get_base(), padding, 6, 4)
     }
     fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let padding = match self.get_padding() {
+            Some(c) => c,
+            None => Err("No complement")?,
+        };
+
         let mut decoded_base2 = String::new();
         for c in encoded.chars() {
-            if BASE.contains(c) {
-                let index = BASE.find(c).unwrap();
+            if self.get_base().contains(c) {
+                let index = self.get_base().find(c).unwrap();
                 if index == 0 {
                     decoded_base2.push_str("000000");
                 } else {
                     decoded_base2.push_str(&to_base(&Integer::from(index), "01", 6));
                 }
-            } else if PADDING.contains(c) {
+            } else if padding.contains(c) {
                 if decoded_base2.len() < 2 {
                     return Err(Box::new(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,

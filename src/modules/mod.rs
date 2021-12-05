@@ -9,6 +9,8 @@ use utils::*;
 pub trait Base {
     fn get_name(&self) -> &'static str;
     fn get_short_name(&self) -> &'static str;
+    fn get_base(&self) -> &'static str;
+    fn get_padding(&self) -> Option<&'static str>;
     fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>>;
     fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>>;
 }

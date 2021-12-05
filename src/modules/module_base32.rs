@@ -24,9 +24,6 @@ use super::*;
 01100 00101 10001 00110 00110 11001 00011 00101
 */
 
-const BASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-const PADDING: &str = "=";
-
 impl Base for Base32 {
     fn get_name(&self) -> &'static str {
         "base32"
@@ -34,21 +31,36 @@ impl Base for Base32 {
     fn get_short_name(&self) -> &'static str {
         "b32"
     }
+    fn get_base(&self) -> &'static str {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+    }
+    fn get_padding(&self) -> Option<&'static str> {
+        Some("=")
+    }
     fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
-        encode_abstract(decoded, BASE, PADDING, 5, 8)
+        let padding = match self.get_padding() {
+            Some(c) => c,
+            None => Err("No complement")?,
+        };
+
+        encode_abstract(decoded, self.get_base(), padding, 5, 8)
     }
     fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let padding = match self.get_padding() {
+            Some(c) => c,
+            None => Err("No complement")?,
+        };
         let mut decoded_base2 = String::new();
         let mut nb_padding = 0;
         for c in encoded.chars() {
-            if BASE.contains(c) {
-                let index = BASE.find(c).unwrap();
+            if self.get_base().contains(c) {
+                let index = self.get_base().find(c).unwrap();
                 if index == 0 {
                     decoded_base2.push_str("00000");
                 } else {
                     decoded_base2.push_str(&to_base(&Integer::from(index), "01", 5));
                 }
-            } else if PADDING.contains(c) {
+            } else if padding.contains(c) {
                 nb_padding += 1;
                 decoded_base2.push_str("00000");
             } else {
