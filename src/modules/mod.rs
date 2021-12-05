@@ -1,3 +1,4 @@
+pub mod module_base10;
 pub mod module_base2;
 pub mod module_base32;
 pub mod module_base58;
@@ -20,6 +21,7 @@ pub trait Base {
 pub fn get_bases() -> Vec<Box<dyn Base>> {
     let bases: Vec<Box<dyn Base>> = vec![
         Box::new(module_base2::Base2),
+        Box::new(module_base10::Base10),
         Box::new(module_hex::Hex),
         Box::new(module_base32::Base32),
         Box::new(module_base58::Base58),
