@@ -2,7 +2,7 @@ pub struct Base64;
 
 use super::module_base2::Base2;
 use super::utils::*;
-use super::Base;
+use super::*;
 
 const BASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const PADDING: &str = "=";
@@ -15,34 +15,18 @@ impl Base for Base64 {
         "b64"
     }
     fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let encoded_base2 = Base2.encode(decoded)?;
-        let chunks = encoded_base2.as_str().packed_by(6);
-        let mut encoded = String::new();
-
-        for chunk in chunks {
-            let chunk_value = from_base(chunk.as_str(), "01")?.to_usize().unwrap();
-
-            if chunk.len() == 6 {
-                encoded.push(BASE.chars().nth(chunk_value).unwrap());
-            } else if chunk.len() < 6 {
-                let chunk_value = chunk_value << (6 - chunk.len());
-                encoded.push(BASE.chars().nth(chunk_value).unwrap());
-
-                let padding = 4 - encoded.len() % 4;
-                for _ in 0..padding {
-                    encoded.push_str(PADDING);
-                }
-            }
-        }
-        Ok(encoded)
+        encode_abstract(decoded, BASE, PADDING, 6, 4)
     }
     fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
         let mut decoded_base2 = String::new();
-        let mut decoded = String::new();
         for c in encoded.chars() {
             if BASE.contains(c) {
                 let index = BASE.find(c).unwrap();
-                decoded_base2.push_str(&to_base(&Integer::from(index), "01", 6));
+                if index == 0 {
+                    decoded_base2.push_str("000000");
+                } else {
+                    decoded_base2.push_str(&to_base(&Integer::from(index), "01", 6));
+                }
             } else if PADDING.contains(c) {
                 if decoded_base2.len() < 2 {
                     return Err(Box::new(std::io::Error::new(
