@@ -11,6 +11,12 @@ fn get_printable_percentage(s: &str) -> f32 {
 }
 
 pub fn basecracker(cipher: &String) -> String {
+    // exit if cipher is empty
+    if cipher.len() == 0 {
+        println!("Cipher is empty");
+        return String::from("");
+    }
+
     let mut result = String::new();
     let bases = modules::get_bases();
 
