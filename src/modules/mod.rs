@@ -1,6 +1,7 @@
 pub mod module_base10;
 pub mod module_base2;
 pub mod module_base2_7bytes;
+pub mod module_base2_9bytes;
 pub mod module_base32;
 pub mod module_base58;
 pub mod module_base62;
@@ -63,6 +64,7 @@ pub fn get_bases() -> Vec<Box<dyn Base>> {
     let bases: Vec<Box<dyn Base>> = vec![
         Box::new(module_base2::Base2),
         Box::new(module_base2_7bytes::Base2_7bytes),
+        Box::new(module_base2_9bytes::Base2_9bytes),
         Box::new(module_base10::Base10),
         Box::new(module_hex::Hex),
         Box::new(module_base32::Base32),
