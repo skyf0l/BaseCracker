@@ -11,10 +11,50 @@ use utils::*;
 
 pub trait Base {
     fn get_name(&self) -> &'static str;
+
     fn get_short_name(&self) -> &'static str;
+
     fn get_base(&self) -> &'static str;
+
     fn get_padding(&self) -> Option<&'static str>;
+
+    fn can_be_decoded(&self, encoded: &str) -> bool {
+        let mut is_padding = false;
+
+        for c in encoded.chars() {
+            if is_padding {
+                match self.get_padding() {
+                    Some(padding) => {
+                        if !padding.contains(c) {
+                            return false;
+                        }
+                    }
+                    None => {
+                        return false;
+                    }
+                }
+            } else {
+                if !self.get_base().contains(c) {
+                    match self.get_padding() {
+                        Some(padding) => {
+                            if padding.contains(c) {
+                                is_padding = true;
+                            } else {
+                                return false;
+                            }
+                        }
+                        None => {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        true
+    }
+
     fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>>;
+
     fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>>;
 }
 
@@ -74,4 +114,52 @@ pub fn encode_abstract(
         }
     }
     Ok(encoded)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::modules::{module_base2::Base2, module_base64::Base64};
+
+    #[test]
+    fn test_can_be_decoded_0() {
+        let base = Base2;
+        assert!(base.can_be_decoded(&String::from("01001000")));
+    }
+
+    #[test]
+    fn test_can_be_decoded_1() {
+        let base = Base2;
+        assert!(!base.can_be_decoded(&String::from("01001002")));
+    }
+
+    #[test]
+    fn test_can_be_decoded_2() {
+        let base = Base64;
+        assert!(base.can_be_decoded(&String::from("aGVsbG8gd29ybGQ=")));
+    }
+
+    #[test]
+    fn test_can_be_decoded_3() {
+        let base = Base64;
+        assert!(base.can_be_decoded(&String::from("YWJj")));
+    }
+
+    #[test]
+    fn test_can_be_decoded_4() {
+        let base = Base64;
+        assert!(!base.can_be_decoded(&String::from("aGVsbG8gd29ybGQ=a")));
+    }
+
+    #[test]
+    fn test_can_be_decoded_5() {
+        let base = Base64;
+        assert!(!base.can_be_decoded(&String::from("aGVsbG8gd29!ybGQ=")));
+    }
+
+    #[test]
+    fn test_can_be_decoded_6() {
+        let base = Base64;
+        assert!(!base.can_be_decoded(&String::from("YW%Jj")));
+    }
 }
