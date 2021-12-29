@@ -15,19 +15,19 @@ impl PackedBy<String> for &str {
     }
 }
 
-pub fn str_to_int(s: &str) -> Integer {
+pub fn str_to_int(s: &str, mult: u32) -> Integer {
     let mut result = Integer::from(0);
     for c in s.chars() {
-        result = result * 256 + Integer::from(c as u32);
+        result = result * mult + Integer::from(c as u32);
     }
     result
 }
 
-pub fn int_to_str(n: &Integer) -> String {
+pub fn int_to_str(n: &Integer, mult: u32) -> String {
     let mut result = String::new();
     let mut tmp_n = n.clone();
     while tmp_n > Integer::from(0) {
-        let (q, r) = tmp_n.div_rem(Integer::from(256));
+        let (q, r) = tmp_n.div_rem(Integer::from(mult));
         result.push(r.to_i32().unwrap() as u8 as char);
         tmp_n = q;
     }
@@ -96,25 +96,25 @@ mod tests {
 
     #[test]
     fn test_to_integer_1() {
-        let result = str_to_int("Hello World!");
+        let result = str_to_int("Hello World!", 256);
         assert_eq!(result, Integer::from(22405534230753928650781647905 as u128));
     }
 
     #[test]
     fn test_to_integer_2() {
-        let result = str_to_int("BaseCracker");
+        let result = str_to_int("BaseCracker", 256);
         assert_eq!(result, Integer::from(80249302315773941590484338 as u128));
     }
 
     #[test]
     fn test_to_string_1() {
-        let result = int_to_str(&Integer::from(22405534230753928650781647905 as u128));
+        let result = int_to_str(&Integer::from(22405534230753928650781647905 as u128), 256);
         assert_eq!(result, "Hello World!");
     }
 
     #[test]
     fn test_to_string_2() {
-        let result = int_to_str(&Integer::from(80249302315773941590484338 as u128));
+        let result = int_to_str(&Integer::from(80249302315773941590484338 as u128), 256);
         assert_eq!(result, "BaseCracker");
     }
 
