@@ -37,7 +37,7 @@ impl Base for Base32 {
     fn get_padding(&self) -> Option<&'static str> {
         Some("=")
     }
-    fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+    fn encode(&self, decoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
             None => Err("No complement")?,
@@ -45,7 +45,7 @@ impl Base for Base32 {
 
         encode_abstract(decoded, self.get_base(), padding, 5, 8)
     }
-    fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+    fn decode(&self, encoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
             None => Err("No complement")?,
@@ -64,10 +64,7 @@ impl Base for Base32 {
                 nb_padding += 1;
                 decoded_base2.push_str("00000");
             } else {
-                return Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    "Invalid character in base32 string",
-                )));
+                return Err("Invalid character in base32 string".to_string());
             }
         }
         let decoded = Base2.decode(decoded_base2.as_str())?;
@@ -77,10 +74,7 @@ impl Base for Base32 {
             3 => Ok(decoded.chars().take(decoded.len() - 2).collect()),
             4 => Ok(decoded.chars().take(decoded.len() - 3).collect()),
             6 => Ok(decoded.chars().take(decoded.len() - 4).collect()),
-            _ => Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "Invalid padding",
-            ))),
+            _ => Err("Invalid padding".to_string()),
         }
     }
 }

@@ -53,9 +53,9 @@ pub trait Base {
         true
     }
 
-    fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>>;
+    fn encode(&self, decoded: &str) -> Result<String, String>;
 
-    fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>>;
+    fn decode(&self, encoded: &str) -> Result<String, String>;
 }
 
 pub fn get_bases() -> Vec<Box<dyn Base>> {
@@ -71,17 +71,13 @@ pub fn get_bases() -> Vec<Box<dyn Base>> {
     bases
 }
 
-pub fn encode_decimal(
-    decoded: &str,
-    base: &str,
-    block_size: usize,
-) -> Result<String, Box<dyn std::error::Error>> {
+pub fn encode_decimal(decoded: &str, base: &str, block_size: usize) -> Result<String, String> {
     let n = utils::str_to_int(decoded);
     let encoded = utils::to_base(&n, base, block_size);
     Ok(encoded)
 }
 
-pub fn decode_decimal(encoded: &str, base: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub fn decode_decimal(encoded: &str, base: &str) -> Result<String, String> {
     let n = utils::from_base(&encoded, base)?;
     let decoded = utils::int_to_str(&n);
     Ok(decoded.to_string())
@@ -93,7 +89,7 @@ pub fn encode_abstract(
     padding: &str,
     in_block_size: usize,
     out_block_size: usize,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String, String> {
     let encoded_base2 = module_base2::Base2.encode(decoded)?;
     let chunks = encoded_base2.as_str().packed_by(in_block_size);
     let mut encoded = String::new();

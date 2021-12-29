@@ -17,7 +17,7 @@ impl Base for Base64 {
     fn get_padding(&self) -> Option<&'static str> {
         Some("=")
     }
-    fn encode(&self, decoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+    fn encode(&self, decoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
             None => Err("No complement")?,
@@ -25,7 +25,7 @@ impl Base for Base64 {
 
         encode_abstract(decoded, self.get_base(), padding, 6, 4)
     }
-    fn decode(&self, encoded: &str) -> Result<String, Box<dyn std::error::Error>> {
+    fn decode(&self, encoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
             None => Err("No complement")?,
@@ -42,18 +42,12 @@ impl Base for Base64 {
                 }
             } else if padding.contains(c) {
                 if decoded_base2.len() < 2 {
-                    return Err(Box::new(std::io::Error::new(
-                        std::io::ErrorKind::InvalidInput,
-                        "Invalid padding",
-                    )));
+                    return Err("Invalid padding".to_string());
                 }
                 decoded_base2.pop();
                 decoded_base2.pop();
             } else {
-                return Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    "Invalid character in base64 string",
-                )));
+                return Err("Invalid character in base64 string".to_string());
             }
         }
         Base2.decode(decoded_base2.as_str())
