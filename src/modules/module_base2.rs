@@ -19,7 +19,8 @@ impl Base for Base2 {
         encode_decimal(decoded, self.get_base(), 8)
     }
     fn decode(&self, encoded: &str) -> Result<String, String> {
-        decode_decimal(encoded, self.get_base())
+        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
+        decode_decimal(encoded.as_str(), self.get_base())
     }
 }
 
@@ -41,6 +42,16 @@ mod tests {
         let base = Base2;
         assert_eq!(
             base.decode(&String::from("010010000110010101101100011011000110111100100000010101110110111101110010011011000110010000100001"))
+                .unwrap(),
+            "Hello World!"
+        );
+    }
+
+    #[test]
+    fn test_decode_blankspaces() {
+        let base = Base2;
+        assert_eq!(
+            base.decode(&String::from("010010  00 0 110 0 1010\t110 11 000  110110001101111  \t 00100000010101110110 \t111\t 101110\t \t010011011000110010000100001 "))
                 .unwrap(),
             "Hello World!"
         );

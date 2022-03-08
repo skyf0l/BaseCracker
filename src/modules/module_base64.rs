@@ -31,6 +31,7 @@ impl Base for Base64 {
             None => Err("No complement")?,
         };
 
+        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
         let mut decoded_base2 = String::new();
         for c in encoded.chars() {
             if self.get_base().contains(c) {

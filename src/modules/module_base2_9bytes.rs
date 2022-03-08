@@ -21,6 +21,7 @@ impl Base for Base2_9bytes {
         Ok(encoded)
     }
     fn decode(&self, encoded: &str) -> Result<String, String> {
+        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
         let n = utils::from_base(&encoded, self.get_base())?;
         let decoded = utils::int_to_str(&n, 512);
         Ok(decoded.to_string())

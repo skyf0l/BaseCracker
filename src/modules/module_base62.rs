@@ -19,7 +19,8 @@ impl Base for Base62 {
         encode_decimal(decoded, self.get_base(), 1)
     }
     fn decode(&self, encoded: &str) -> Result<String, String> {
-        decode_decimal(encoded, self.get_base())
+        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
+        decode_decimal(encoded.as_str(), self.get_base())
     }
 }
 

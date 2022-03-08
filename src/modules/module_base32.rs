@@ -50,6 +50,8 @@ impl Base for Base32 {
             Some(c) => c,
             None => Err("No complement")?,
         };
+
+        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
         let mut decoded_base2 = String::new();
         let mut nb_padding = 0;
         for c in encoded.chars() {
