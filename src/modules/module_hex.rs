@@ -19,7 +19,9 @@ impl Base for Hex {
         encode_decimal(decoded, self.get_base(), 2)
     }
     fn decode(&self, encoded: &str) -> Result<String, String> {
-        decode_decimal(encoded, self.get_base())
+        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
+        let encoded = encoded.to_lowercase();
+        decode_decimal(encoded.as_str(), self.get_base())
     }
 }
 
@@ -41,6 +43,16 @@ mod tests {
         let base = Hex;
         assert_eq!(
             base.decode(&String::from("48656c6c6f20576f726c6421"))
+                .unwrap(),
+            "Hello World!"
+        );
+    }
+
+    #[test]
+    fn test_decode_uppercase() {
+        let base = Hex;
+        assert_eq!(
+            base.decode(&String::from("48656C6C6F20576F726C6421"))
                 .unwrap(),
             "Hello World!"
         );
