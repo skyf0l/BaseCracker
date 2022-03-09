@@ -16,3 +16,7 @@ categories = ["ctf-tools"]
 version = "1.14"
 default-features = false
 features = ["integer"]
+
+[dependencies.clap]
+version = "3.1.6"
+features = ["derive"]
