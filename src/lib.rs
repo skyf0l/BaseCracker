@@ -27,6 +27,24 @@ pub fn decode_round(
     result
 }
 
+pub fn encode(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<String, String> {
+    let mut result = cipher.to_string();
+
+    for base in bases {
+        result = base.encode(&result)?;
+    }
+    Ok(result)
+}
+
+pub fn decode(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<String, String> {
+    let mut result = cipher.to_string();
+
+    for base in bases {
+        result = base.decode(&result)?;
+    }
+    Ok(result)
+}
+
 pub fn basecracker(cipher: &str) -> Vec<(String, Vec<String>)> {
     basecracker_with_bases(cipher, &modules::get_bases())
 }
