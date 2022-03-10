@@ -60,7 +60,7 @@ struct Args {
         short,
         long,
         value_name = "PLAINTEXT",
-        conflicts_with_all = &["decode", "crack"]
+        conflicts_with_all = &["decode", "crack", "list"]
     )]
     encode: Option<String>,
 
@@ -69,7 +69,7 @@ struct Args {
         short,
         long,
         value_name = "CIPHER",
-        conflicts_with_all = &["encode", "crack"]
+        conflicts_with_all = &["encode", "crack", "list"]
     )]
     decode: Option<String>,
 
@@ -78,18 +78,29 @@ struct Args {
         short,
         long,
         value_name = "CIPHER",
-        conflicts_with_all = &["encode", "decode"]
+        conflicts_with_all = &["encode", "decode", "list"]
     )]
     crack: Option<String>,
 
     /// Set base to use for encoding/decoding
     #[clap(
         short,
-        long, 
+        long,
         min_values = 1,
         requires_all = &["encode", "decode", "crack"]
     )]
     bases: Option<Vec<String>>,
+
+    /// List supported bases
+    // Transformers are not implemented yet
+    #[clap(
+        short,
+        long,
+        conflicts_with_all = &["encode", "decode", "crack"],
+        possible_values = &["b", "bases"],
+        value_name = "b/bases"
+    )]
+    list: Option<String>,
 
     /// Output cracker results in json format
     #[clap(
@@ -112,7 +123,15 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    if let Some(_plaintext) = args.encode {
+    if let Some(list) = args.list {
+        if list == "b" || list == "bases" {
+            println!("Supported bases are:");
+            for (short, long) in basecracker::get_bases_names() {
+                println!("  - {:15}({})", long, short);
+            }
+            return;
+        }
+    } else if let Some(_plaintext) = args.encode {
         let _bases = args.bases;
         todo!();
     } else if let Some(_cipher) = args.decode {
