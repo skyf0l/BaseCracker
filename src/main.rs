@@ -92,15 +92,12 @@ struct Args {
     bases: Option<Vec<String>>,
 
     /// List supported bases
-    // Transformers are not implemented yet
     #[clap(
         short,
         long,
         conflicts_with_all = &["encode", "decode", "crack"],
-        possible_values = &["b", "bases"],
-        value_name = "b/bases"
     )]
-    list: Option<String>,
+    list: bool,
 
     /// Output cracker results in json format
     #[clap(
@@ -120,12 +117,10 @@ struct Args {
     quiet: bool,
 }
 
-fn subcommand_list(identifier: &str) {
-    if identifier == "b" || identifier == "bases" {
-        println!("Supported bases are:");
-        for (short, long) in basecracker::get_bases_names() {
-            println!("  - {:15}({})", long, short);
-        }
+fn subcommand_list() {
+    println!("Supported bases are:");
+    for (short, long) in basecracker::get_bases_names() {
+        println!("  - {:15}({})", long, short);
     }
 }
 
@@ -157,9 +152,9 @@ fn parse_bases(bases: &Option<Vec<String>>) -> Result<Vec<Box<dyn Base>>, String
 fn main() {
     let args = Args::parse();
 
-    if let Some(identifier) = args.list {
+    if args.list {
         // list subcommand
-        subcommand_list(&identifier);
+        subcommand_list();
     } else {
         // parse bases from args
         let specified_bases = match args.bases {
