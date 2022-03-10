@@ -1,21 +1,10 @@
 pub mod modules;
-
 pub use modules::get_base_from_name;
 pub use modules::get_bases_from_names;
 pub use modules::get_bases_names;
 
-fn get_printable_percentage(s: &str) -> f32 {
-    if s.len() == 0 {
-        return 0.0;
-    }
-    let mut sum = 0.0;
-    for c in s.chars() {
-        if c.is_alphabetic() || ((c as u32) >= 32 && (c as u32) < 127) {
-            sum += 1.0;
-        }
-    }
-    sum / s.len() as f32
-}
+pub mod utils;
+pub use utils::get_printable_percentage;
 
 pub fn decode_round(cipher: String, min_printable_percentage: f32) -> Vec<(String, String)> {
     let mut result = Vec::new();
