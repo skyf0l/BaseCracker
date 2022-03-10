@@ -168,18 +168,30 @@ fn main() {
             None => None,
         };
 
-        if let Some(_plaintext) = args.encode {
+        if let Some(plaintext) = args.encode {
             // encode subcommand
-            if let Some(_bases) = specified_bases {
-                todo!();
+            if let Some(bases) = specified_bases {
+                match basecracker::encode(&plaintext, &bases) {
+                    Ok(cipher) => println!("{}", cipher),
+                    Err(err) => {
+                        eprintln!("{}", err);
+                        std::process::exit(1);
+                    }
+                }
             } else {
                 eprintln!("No bases specified");
                 eprintln!("Use --bases to specify bases");
             }
-        } else if let Some(_cipher) = args.decode {
+        } else if let Some(cipher) = args.decode {
             // decode subcommand
-            if let Some(_bases) = specified_bases {
-                todo!();
+            if let Some(bases) = specified_bases {
+                match basecracker::decode(&cipher, &bases) {
+                    Ok(plaintext) => println!("{}", plaintext),
+                    Err(err) => {
+                        eprintln!("{}", err);
+                        std::process::exit(1);
+                    }
+                }
             } else {
                 eprintln!("No bases specified");
                 eprintln!("Use --bases to specify bases");
