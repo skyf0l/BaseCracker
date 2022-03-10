@@ -2,13 +2,17 @@ pub mod modules;
 pub use modules::get_base_from_name;
 pub use modules::get_bases_from_names;
 pub use modules::get_bases_names;
+use modules::Base;
 
 pub mod utils;
 pub use utils::get_printable_percentage;
 
-pub fn decode_round(cipher: String, min_printable_percentage: f32) -> Vec<(String, String)> {
+pub fn decode_round(
+    cipher: &str,
+    bases: &Vec<Box<dyn Base>>,
+    min_printable_percentage: f32,
+) -> Vec<(String, String)> {
     let mut result = Vec::new();
-    let bases = modules::get_bases();
 
     for base in bases {
         match base.decode(&cipher) {
@@ -24,6 +28,13 @@ pub fn decode_round(cipher: String, min_printable_percentage: f32) -> Vec<(Strin
 }
 
 pub fn basecracker(cipher: &str) -> Vec<(String, Vec<String>)> {
+    basecracker_with_bases(cipher, &modules::get_bases())
+}
+
+pub fn basecracker_with_bases(
+    cipher: &str,
+    bases: &Vec<Box<dyn Base>>,
+) -> Vec<(String, Vec<String>)> {
     // exit if cipher is empty
     if cipher.len() == 0 {
         println!("Cipher is empty");
@@ -36,7 +47,7 @@ pub fn basecracker(cipher: &str) -> Vec<(String, Vec<String>)> {
 
     // initialize the results vector
     let mut results = Vec::new();
-    let round_result = decode_round(cipher.to_string(), min_printable_percentage);
+    let round_result = decode_round(cipher, &bases, min_printable_percentage);
     for (plain, base) in round_result {
         results.push((plain, vec![base]));
     }
@@ -44,15 +55,15 @@ pub fn basecracker(cipher: &str) -> Vec<(String, Vec<String>)> {
     // loop through the bases
     while results.len() > 0 {
         let mut next_results = Vec::new();
-        for (plain, bases) in results {
-            let round_result = decode_round(plain.to_string(), min_printable_percentage);
+        for (plain, base_names) in results {
+            let round_result = decode_round(&plain, &bases, min_printable_percentage);
             if round_result.len() == 0 {
-                final_result.push((plain, bases.clone()));
+                final_result.push((plain, base_names.clone()));
             } else {
-                for (plain, base) in round_result {
-                    let mut new_bases = bases.clone();
-                    new_bases.push(base);
-                    next_results.push((plain, new_bases));
+                for (plain, base_name) in round_result {
+                    let mut new_base_names = base_names.clone();
+                    new_base_names.push(base_name);
+                    next_results.push((plain, new_base_names));
                 }
             }
         }
