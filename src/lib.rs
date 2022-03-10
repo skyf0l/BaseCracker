@@ -1,5 +1,9 @@
 pub mod modules;
 
+pub use modules::get_base_from_name;
+pub use modules::get_bases_from_names;
+pub use modules::get_bases_names;
+
 fn get_printable_percentage(s: &str) -> f32 {
     if s.len() == 0 {
         return 0.0;

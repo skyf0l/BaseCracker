@@ -75,6 +75,39 @@ pub fn get_bases() -> Vec<Box<dyn Base>> {
     bases
 }
 
+pub fn get_bases_names() -> Vec<(String, String)> {
+    let mut names = Vec::new();
+    for base in get_bases() {
+        names.push((
+            base.get_short_name().to_string(),
+            base.get_name().to_string(),
+        ));
+    }
+    names
+}
+
+pub fn get_base_from_name(name: &str) -> Option<Box<dyn Base>> {
+    for base in get_bases() {
+        if base.get_name() == name {
+            return Some(base);
+        }
+    }
+    None
+}
+
+pub fn get_bases_from_names(names: &Vec<String>) -> Option<Vec<Box<dyn Base>>> {
+    let mut bases = Vec::new();
+    for name in names {
+        let base = get_base_from_name(name);
+        if let Some(base) = base {
+            bases.push(base);
+        } else {
+            return None;
+        }
+    }
+    Some(bases)
+}
+
 pub fn encode_decimal(decoded: &str, base: &str, block_size: usize) -> Result<String, String> {
     let n = utils::str_to_int(decoded, 256);
     let encoded = utils::to_base(&n, base, block_size);
