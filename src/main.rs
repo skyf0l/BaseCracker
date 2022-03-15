@@ -154,28 +154,54 @@ fn get_file_content(arg: &str) -> Result<String, String> {
 fn subcommand_encode(
     plaintext: &str,
     specified_bases: &Vec<Box<dyn Base>>,
-    _arg_verbose: bool,
+    arg_verbose: bool,
 ) -> Result<(), String> {
     // get plaintext from file or argument
     let plaintext = get_file_content(&plaintext)?;
 
     // encode
-    let cipher = basecracker::encode(&plaintext, specified_bases)?;
-    println!("{}", cipher);
+    if arg_verbose {
+        let ciphers = basecracker::encode_steps(&plaintext, specified_bases)?;
+        println!("Plaintext: {}\n", plaintext);
+        for (i, cipher) in ciphers.iter().enumerate() {
+            println!(
+                "Applying {:10} {}",
+                format!("{}:", specified_bases[i].get_name()),
+                cipher
+            );
+        }
+        println!("\nCipher: {}", ciphers[ciphers.len() - 1]);
+    } else {
+        let cipher = basecracker::encode(&plaintext, specified_bases)?;
+        println!("{}", cipher);
+    }
     Ok(())
 }
 
 fn subcommand_decode(
     cipher: &str,
     specified_bases: &Vec<Box<dyn Base>>,
-    _arg_verbose: bool,
+    arg_verbose: bool,
 ) -> Result<(), String> {
     // get cipher from file or argument
     let cipher = get_file_content(&cipher)?;
 
     // decode
-    let plaintext = basecracker::decode(&cipher, specified_bases)?;
-    println!("{}", plaintext);
+    if arg_verbose {
+        let plaintexts = basecracker::decode_steps(&cipher, specified_bases)?;
+        println!("Cipher: {}\n", cipher);
+        for (i, plaintext) in plaintexts.iter().enumerate() {
+            println!(
+                "Applying {:10} {}",
+                format!("{}:", specified_bases[i].get_name()),
+                plaintext
+            );
+        }
+        println!("\nPlaintext: {}", plaintexts[plaintexts.len() - 1]);
+    } else {
+        let plaintext = basecracker::decode(&cipher, specified_bases)?;
+        println!("{}", plaintext);
+    }
     Ok(())
 }
 

@@ -27,6 +27,9 @@ pub fn encode_steps(plaintext: &str, bases: &Vec<Box<dyn Base>>) -> Result<Vec<S
     for base in bases {
         result.push(base.encode(&result[result.len() - 1])?);
     }
+
+    // remove the first element (plaintext)
+    result.remove(0);
     Ok(result)
 }
 
@@ -50,6 +53,9 @@ pub fn decode_steps(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<Vec<Stri
     for base in bases {
         result.push(base.decode(&result[result.len() - 1])?);
     }
+
+    // remove the first element (cipher)
+    result.remove(0);
     Ok(result)
 }
 
@@ -281,7 +287,6 @@ mod tests {
                 .unwrap()
             ),
             Ok(vec![
-                "Hello World!".to_string(),
                 "SGVsbG8gV29ybGQh".to_string(),
                 "53475673624738675632397962475168".to_string(),
                 "4afto9ow5ffzGyMCjboUeq5HbDkPTXpqPX4NMBwUCypB".to_string()
@@ -318,7 +323,6 @@ mod tests {
                 .unwrap()
             ),
             Ok(vec![
-                "4afto9ow5ffzGyMCjboUeq5HbDkPTXpqPX4NMBwUCypB".to_string(),
                 "53475673624738675632397962475168".to_string(),
                 "SGVsbG8gV29ybGQh".to_string(),
                 "Hello World!".to_string()
