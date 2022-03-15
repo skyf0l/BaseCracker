@@ -208,7 +208,7 @@ fn subcommand_decode(
 fn subcommand_crack(
     cipher: &str,
     specified_bases: &Option<Vec<Box<dyn Base>>>,
-    _arg_verbose: bool,
+    arg_verbose: bool,
     arg_json: bool,
     arg_quiet: bool,
 ) -> Result<(), String> {
@@ -231,12 +231,35 @@ fn subcommand_crack(
     } else {
         // output in plaintext format
         if plaintexts.len() != 0 {
-            for (plaintext, bases) in plaintexts {
-                if !arg_quiet {
-                    println!("Recipe: {}", bases.join(" -> "));
-                    println!("Result: {}", plaintext);
-                } else {
+            for (plaintext, bases) in &plaintexts {
+                if arg_quiet {
+                    // print only plaintext
                     println!("{}", plaintext);
+                } else {
+                    println!("Recipe: {}", bases.join(","));
+                    if arg_verbose {
+                        // print decoded steps
+                        println!("Cipher: {}", cipher);
+                        let mut tmp_cipher = cipher.clone();
+                        for base_name in bases.iter() {
+                            // unwrap is safe because base_name has been used before
+                            let base = basecracker::get_base_from_name(base_name).unwrap();
+                            tmp_cipher = base.decode(&tmp_cipher).unwrap();
+                            println!(
+                                "Applying {:10} {}",
+                                format!("{}:", base.get_name()),
+                                tmp_cipher
+                            );
+                        }
+                        println!("Result: {}", plaintext);
+                    } else {
+                        println!("Result: {}", plaintext);
+                    }
+                }
+
+                // separate results by newline
+                if plaintexts.len() > 1 {
+                    println!();
                 }
             }
         } else {
