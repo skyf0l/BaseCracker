@@ -1,7 +1,9 @@
 use std::path::Path;
 
-use basecracker::{self, modules::Base};
 use clap::Parser;
+use serde_json::json;
+
+use basecracker::{self, modules::Base};
 
 /// Convert result of basecracker in json format:
 ///
@@ -21,37 +23,18 @@ use clap::Parser;
 /// }
 /// ```
 fn plaintexts_to_json(cipher: &str, plaintexts: &Vec<(String, Vec<String>)>) -> String {
-    let mut json = String::new();
-    json.push_str("{\n");
-    json.push_str("  \"cipher\": \"");
-    json.push_str(cipher);
-    json.push_str("\",\n");
-    json.push_str("  \"plaintexts\": [\n");
-    for (i, (plaintext, bases)) in plaintexts.iter().enumerate() {
-        json.push_str("    {\n");
-        json.push_str("      \"plaintext\": \"");
-        json.push_str(plaintext);
-        json.push_str("\",\n");
-        json.push_str("      \"bases\": [\n");
-        for (j, base) in bases.iter().enumerate() {
-            json.push_str("        \"");
-            json.push_str(base);
-            json.push_str("\"");
-            if j < bases.len() - 1 {
-                json.push_str(",");
-            }
-            json.push_str("\n");
-        }
-        json.push_str("      ]\n");
-        json.push_str("    }");
-        if i < plaintexts.len() - 1 {
-            json.push_str(",");
-        }
-        json.push_str("\n");
+    let mut plaintexts_json = vec![];
+    for (plaintext, bases) in plaintexts {
+        plaintexts_json.push(json!({
+            "plaintext": plaintext,
+            "bases": json!(bases)
+        }));
     }
-    json.push_str("  ]\n");
-    json.push_str("}");
-    json
+    json!({
+        "cipher": cipher,
+        "plaintexts": json!(plaintexts_json)
+    })
+    .to_string()
 }
 
 #[derive(Parser, Debug)]
