@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use basecracker::{self, modules::Base};
 use clap::Parser;
 
@@ -55,7 +57,7 @@ fn plaintexts_to_json(cipher: &str, plaintexts: &Vec<(String, Vec<String>)>) -> 
 #[derive(Parser, Debug)]
 #[clap(version, about)]
 struct Args {
-    /// Encode given plaintext using the specified bases
+    /// Encode given plaintext/file using the specified bases
     #[clap(
         short,
         long,
@@ -64,7 +66,7 @@ struct Args {
     )]
     encode: Option<String>,
 
-    /// Decode given cipher using the specified bases
+    /// Decode given cipher/file using the specified bases
     #[clap(
         short,
         long,
@@ -73,7 +75,7 @@ struct Args {
     )]
     decode: Option<String>,
 
-    /// Try to crack the cipher using the specified bases (default: all)
+    /// Crack the cipher/file using the specified bases (default: all)
     #[clap(
         short,
         long,
@@ -149,6 +151,16 @@ fn parse_bases(bases: &Option<Vec<String>>) -> Result<Vec<Box<dyn Base>>, String
     }
 }
 
+// If argument is a file, read it, else return argument as is
+fn get_file_content(arg: &str) -> Result<String, String> {
+    if Path::new(arg).exists() {
+        let content = std::fs::read_to_string(arg).map_err(|e| e.to_string())?;
+        Ok(content)
+    } else {
+        Ok(arg.to_string())
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -169,6 +181,15 @@ fn main() {
         };
 
         if let Some(plaintext) = args.encode {
+            // get plaintext from file or argument
+            let plaintext = match get_file_content(&plaintext) {
+                Ok(plaintext) => plaintext,
+                Err(err) => {
+                    eprintln!("{}", err);
+                    std::process::exit(1);
+                }
+            };
+
             // encode subcommand
             if let Some(bases) = specified_bases {
                 match basecracker::encode(&plaintext, &bases) {
@@ -183,6 +204,15 @@ fn main() {
                 eprintln!("Use --bases to specify bases");
             }
         } else if let Some(cipher) = args.decode {
+            // get cipher from file or argument
+            let cipher = match get_file_content(&cipher) {
+                Ok(cipher) => cipher,
+                Err(err) => {
+                    eprintln!("{}", err);
+                    std::process::exit(1);
+                }
+            };
+
             // decode subcommand
             if let Some(bases) = specified_bases {
                 match basecracker::decode(&cipher, &bases) {
@@ -197,11 +227,21 @@ fn main() {
                 eprintln!("Use --bases to specify bases");
             }
         } else if let Some(cipher) = args.crack {
+            // get cipher from file or argument
+            let cipher = match get_file_content(&cipher) {
+                Ok(cipher) => cipher,
+                Err(err) => {
+                    eprintln!("{}", err);
+                    std::process::exit(1);
+                }
+            };
+
             // crack subcommand
             let plaintexts = match specified_bases {
                 Some(bases) => basecracker::basecracker_with_bases(&cipher, &bases),
                 None => basecracker::basecracker(&cipher),
             };
+
             if args.json {
                 // output in json format
                 println!("{}", plaintexts_to_json(&cipher, &plaintexts));
