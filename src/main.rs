@@ -76,6 +76,14 @@ struct Args {
     )]
     bases: Option<Vec<String>>,
 
+    /// Reverse bases order (default: false)
+    #[clap(
+        short,
+        long,
+        requires_all = &["encode", "decode", "bases"]
+    )]
+    reversed: bool,
+
     /// List supported bases
     #[clap(
         short,
@@ -109,29 +117,28 @@ fn subcommand_list() {
     }
 }
 
-fn parse_bases(bases: &Option<Vec<String>>) -> Result<Vec<Box<dyn Base>>, String> {
-    match bases {
-        Some(bases) => {
-            // split bases by comma or space
-            let bases = bases
-                // split by comma
-                .iter()
-                .flat_map(|base| base.split(',').map(|b| b.to_string()))
-                .collect::<Vec<String>>()
-                // split by space
-                .iter()
-                .flat_map(|base| base.split(' ').map(|b| b.to_string()))
-                .collect::<Vec<String>>()
-                // remove empty bases
-                .iter()
-                .map(|base| base.trim())
-                .filter(|base| !base.is_empty())
-                .map(|base| base.to_string())
-                .collect::<Vec<String>>();
-            basecracker::get_bases_from_names(&bases)
-        }
-        None => Err("No bases specified".to_string()),
+fn parse_bases(bases: &Vec<String>, reversed: bool) -> Result<Vec<Box<dyn Base>>, String> {
+    // split bases by comma or space
+    let mut bases = bases
+        // split by comma
+        .iter()
+        .flat_map(|base| base.split(',').map(|b| b.to_string()))
+        .collect::<Vec<String>>()
+        // split by space
+        .iter()
+        .flat_map(|base| base.split(' ').map(|b| b.to_string()))
+        .collect::<Vec<String>>()
+        // remove empty bases
+        .iter()
+        .map(|base| base.trim())
+        .filter(|base| !base.is_empty())
+        .map(|base| base.to_string())
+        .collect::<Vec<String>>();
+    // reverse bases order if needed
+    if reversed {
+        bases.reverse();
     }
+    basecracker::get_bases_from_names(&bases)
 }
 
 // If argument is a file, read it, else return argument as is
@@ -153,7 +160,7 @@ fn main() {
     } else {
         // parse bases from args
         let specified_bases = match args.bases {
-            Some(bases) => match parse_bases(&Some(bases)) {
+            Some(bases) => match parse_bases(&bases, args.reversed) {
                 Ok(bases) => Some(bases),
                 Err(err) => {
                     eprintln!("{}", err);
