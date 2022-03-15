@@ -31,35 +31,35 @@ impl Base for Hex {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_encode_decode() {
+    let base = Hex;
+    const TESTLIST: [(&str, &str); 10] = [
+        ("Hello World!", "48656c6c6f20576f726c6421"),
+        ("BaseCracker", "42617365437261636b6572"),
+        ("\x7fELF", "7f454c46"),
+        ("", ""),
+        ("a", "61"),
+        ("aa", "6161"),
+        ("aaa", "616161"),
+        ("aaaa", "61616161"),
+        ("aaaaa", "6161616161"),
+        ("aaaaaa", "616161616161"),
+    ];
 
-    #[test]
-    fn test_encode() {
-        let base = Hex;
-        assert_eq!(
-            base.encode(&String::from("Hello World!")).unwrap(),
-            "48656c6c6f20576f726c6421"
-        );
-    }
+    for test in TESTLIST.iter() {
+        // encode
+        let encoded = match base.encode(&test.0) {
+            Ok(encoded) => encoded,
+            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
+        };
+        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
 
-    #[test]
-    fn test_decode() {
-        let base = Hex;
-        assert_eq!(
-            base.decode(&String::from("48656c6c6f20576f726c6421"))
-                .unwrap(),
-            "Hello World!"
-        );
-    }
-
-    #[test]
-    fn test_decode_uppercase() {
-        let base = Hex;
-        assert_eq!(
-            base.decode(&String::from("48656C6C6F20576F726C6421"))
-                .unwrap(),
-            "Hello World!"
-        );
+        // decode
+        let decoded = match base.decode(&encoded) {
+            Ok(decoded) => decoded,
+            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
+        };
+        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
     }
 }

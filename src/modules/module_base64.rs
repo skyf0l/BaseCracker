@@ -61,90 +61,35 @@ impl Base for Base64 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_encode_decode() {
+    let base = Base64;
+    const TESTLIST: [(&str, &str); 10] = [
+        ("Hello World!", "SGVsbG8gV29ybGQh"),
+        ("BaseCracker", "QmFzZUNyYWNrZXI="),
+        ("\x7fELF", "f0VMRg=="),
+        ("", ""),
+        ("a", "YQ=="),
+        ("aa", "YWE="),
+        ("aaa", "YWFh"),
+        ("aaaa", "YWFhYQ=="),
+        ("aaaaa", "YWFhYWE="),
+        ("aaaaaa", "YWFhYWFh"),
+    ];
 
-    #[test]
-    fn test_base64_encode_1() {
-        let base64 = Base64;
-        let result = base64.encode("hello world").unwrap();
-        assert_eq!(result, "aGVsbG8gd29ybGQ=");
-    }
+    for test in TESTLIST.iter() {
+        // encode
+        let encoded = match base.encode(&test.0) {
+            Ok(encoded) => encoded,
+            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
+        };
+        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
 
-    #[test]
-    fn test_base64_encode_2() {
-        let base64 = Base64;
-        let result = base64.encode("").unwrap();
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn test_base64_encode_3() {
-        let base64 = Base64;
-        let result = base64.encode("a").unwrap();
-        assert_eq!(result, "YQ==");
-    }
-
-    #[test]
-    fn test_base64_encode_4() {
-        let base64 = Base64;
-        let result = base64.encode("ab").unwrap();
-        assert_eq!(result, "YWI=");
-    }
-
-    #[test]
-    fn test_base64_encode_5() {
-        let base64 = Base64;
-        let result = base64.encode("abc").unwrap();
-        assert_eq!(result, "YWJj");
-    }
-
-    #[test]
-    fn test_base64_encode_6() {
-        let base64 = Base64;
-        let result = base64.encode("abca").unwrap();
-        assert_eq!(result, "YWJjYQ==");
-    }
-
-    #[test]
-    fn test_base64_decode_1() {
-        let base64 = Base64;
-        let result = base64.decode("aGVsbG8gd29ybGQ=").unwrap();
-        assert_eq!(result, "hello world");
-    }
-
-    #[test]
-    fn test_base64_decode_2() {
-        let base64 = Base64;
-        let result = base64.decode("").unwrap();
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn test_base64_decode_3() {
-        let base64 = Base64;
-        let result = base64.decode("YQ==").unwrap();
-        assert_eq!(result, "a");
-    }
-
-    #[test]
-    fn test_base64_decode_4() {
-        let base64 = Base64;
-        let result = base64.decode("YWI=").unwrap();
-        assert_eq!(result, "ab");
-    }
-
-    #[test]
-    fn test_base64_decode_5() {
-        let base64 = Base64;
-        let result = base64.decode("YWJj").unwrap();
-        assert_eq!(result, "abc");
-    }
-
-    #[test]
-    fn test_base64_decode_6() {
-        let base64 = Base64;
-        let result = base64.decode("YWJjYQ==").unwrap();
-        assert_eq!(result, "abca");
+        // decode
+        let decoded = match base.decode(&encoded) {
+            Ok(decoded) => decoded,
+            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
+        };
+        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
     }
 }

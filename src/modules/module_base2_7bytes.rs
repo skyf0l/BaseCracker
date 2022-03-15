@@ -34,25 +34,41 @@ impl Base for Base2_7bytes {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_encode_decode() {
+    let base = Base2_7bytes;
+    const TESTLIST: [(&str, &str); 10] = [
+        (
+            "Hello World!",
+            "100100011001011101100110110011011110100000101011111011111110010110110011001000100001",
+        ),
+        (
+            "BaseCracker",
+            "10000101100001111001111001011000011111001011000011100011110101111001011110010",
+        ),
+        ("\x7fELF", "1111111100010110011001000110"),
+        ("", ""),
+        ("a", "1100001"),
+        ("aa", "11000011100001"),
+        ("aaa", "110000111000011100001"),
+        ("aaaa", "1100001110000111000011100001"),
+        ("aaaaa", "11000011100001110000111000011100001"),
+        ("aaaaaa", "110000111000011100001110000111000011100001"),
+    ];
 
-    #[test]
-    fn test_encode() {
-        let base = Base2_7bytes;
-        assert_eq!(
-            base.encode(&String::from("Hello World!")).unwrap(),
-            "100100011001011101100110110011011110100000101011111011111110010110110011001000100001"
-        );
-    }
+    for test in TESTLIST.iter() {
+        // encode
+        let encoded = match base.encode(&test.0) {
+            Ok(encoded) => encoded,
+            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
+        };
+        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
 
-    #[test]
-    fn test_decode() {
-        let base = Base2_7bytes;
-        assert_eq!(
-            base.decode(&String::from("100100011001011101100110110011011110100000101011111011111110010110110011001000100001"))
-                .unwrap(),
-            "Hello World!"
-        );
+        // decode
+        let decoded = match base.decode(&encoded) {
+            Ok(decoded) => decoded,
+            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
+        };
+        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
     }
 }

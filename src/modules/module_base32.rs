@@ -87,102 +87,35 @@ impl Base for Base32 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_encode_decode() {
+    let base = Base32;
+    const TESTLIST: [(&str, &str); 10] = [
+        ("Hello World!", "JBSWY3DPEBLW64TMMQQQ===="),
+        ("BaseCracker", "IJQXGZKDOJQWG23FOI======"),
+        ("\x7fELF", "P5CUYRQ="),
+        ("", ""),
+        ("a", "ME======"),
+        ("aa", "MFQQ===="),
+        ("aaa", "MFQWC==="),
+        ("aaaa", "MFQWCYI="),
+        ("aaaaa", "MFQWCYLB"),
+        ("aaaaaa", "MFQWCYLBME======"),
+    ];
 
-    #[test]
-    fn test_base32_encode_1() {
-        let result = Base32.encode("hello world").unwrap();
-        assert_eq!(result, "NBSWY3DPEB3W64TMMQ======");
-    }
+    for test in TESTLIST.iter() {
+        // encode
+        let encoded = match base.encode(&test.0) {
+            Ok(encoded) => encoded,
+            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
+        };
+        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
 
-    #[test]
-    fn test_base32_encode_2() {
-        let result = Base32.encode("").unwrap();
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn test_base32_encode_3() {
-        let result = Base32.encode("a").unwrap();
-        assert_eq!(result, "ME======");
-    }
-
-    #[test]
-    fn test_base32_encode_4() {
-        let result = Base32.encode("ab").unwrap();
-        assert_eq!(result, "MFRA====");
-    }
-
-    #[test]
-    fn test_base32_encode_5() {
-        let result = Base32.encode("abc").unwrap();
-        assert_eq!(result, "MFRGG===");
-    }
-
-    #[test]
-    fn test_base32_encode_6() {
-        let result = Base32.encode("abcd").unwrap();
-        assert_eq!(result, "MFRGGZA=");
-    }
-
-    #[test]
-    fn test_base32_encode_7() {
-        let result = Base32.encode("abcde").unwrap();
-        assert_eq!(result, "MFRGGZDF");
-    }
-
-    #[test]
-    fn test_base32_encode_8() {
-        let result = Base32.encode("abcdef").unwrap();
-        assert_eq!(result, "MFRGGZDFMY======");
-    }
-
-    #[test]
-    fn test_base32_decode_1() {
-        let result = Base32.decode("NBSWY3DPEB3W64TMMQ======").unwrap();
-        assert_eq!(result, "hello world");
-    }
-
-    #[test]
-    fn test_base32_decode_2() {
-        let result = Base32.decode("").unwrap();
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn test_base32_decode_3() {
-        let result = Base32.decode("ME======").unwrap();
-        assert_eq!(result, "a");
-    }
-
-    #[test]
-    fn test_base32_decode_4() {
-        let result = Base32.decode("MFRA====").unwrap();
-        assert_eq!(result, "ab");
-    }
-
-    #[test]
-    fn test_base32_decode_5() {
-        let result = Base32.decode("MFRGG===").unwrap();
-        assert_eq!(result, "abc");
-    }
-
-    #[test]
-    fn test_base32_decode_6() {
-        let result = Base32.decode("MFRGGZA=").unwrap();
-        assert_eq!(result, "abcd");
-    }
-
-    #[test]
-    fn test_base32_decode_7() {
-        let result = Base32.decode("MFRGGZDF").unwrap();
-        assert_eq!(result, "abcde");
-    }
-
-    #[test]
-    fn test_base32_decode_8() {
-        let result = Base32.decode("MFRGGZDFMY======").unwrap();
-        assert_eq!(result, "abcdef");
+        // decode
+        let decoded = match base.decode(&encoded) {
+            Ok(decoded) => decoded,
+            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
+        };
+        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
     }
 }

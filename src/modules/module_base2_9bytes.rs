@@ -34,25 +34,41 @@ impl Base for Base2_9bytes {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_encode_decode() {
+    let base = Base2_9bytes;
+    const TESTLIST: [(&str, &str); 10] = [
+        (
+            "Hello World!",
+            "001001000001100101001101100001101100001101111000100000001010111001101111001110010001101100001100100000100001",
+        ),
+        (
+            "BaseCracker",
+            "001000010001100001001110011001100101001000011001110010001100001001100011001101011001100101001110010",
+        ),
+        ("\x7fELF", "001111111001000101001001100001000110"),
+        ("", ""),
+        ("a", "001100001"),
+        ("aa", "001100001001100001"),
+        ("aaa", "001100001001100001001100001"),
+        ("aaaa", "001100001001100001001100001001100001"),
+        ("aaaaa", "001100001001100001001100001001100001001100001"),
+        ("aaaaaa", "001100001001100001001100001001100001001100001001100001"),
+    ];
 
-    #[test]
-    fn test_encode() {
-        let base = Base2_9bytes;
-        assert_eq!(
-            base.encode(&String::from("Hello World!")).unwrap(),
-            "001001000001100101001101100001101100001101111000100000001010111001101111001110010001101100001100100000100001"
-        );
-    }
+    for test in TESTLIST.iter() {
+        // encode
+        let encoded = match base.encode(&test.0) {
+            Ok(encoded) => encoded,
+            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
+        };
+        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
 
-    #[test]
-    fn test_decode() {
-        let base = Base2_9bytes;
-        assert_eq!(
-            base.decode(&String::from("001001000001100101001101100001101100001101111000100000001010111001101111001110010001101100001100100000100001"))
-                .unwrap(),
-            "Hello World!"
-        );
+        // decode
+        let decoded = match base.decode(&encoded) {
+            Ok(decoded) => decoded,
+            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
+        };
+        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
     }
 }
