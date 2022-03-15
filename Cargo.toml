@@ -1,0 +1,23 @@
+[package]
+name = "basecracker"
+version = "0.1.0"
+authors = ["skyf0l"]
+edition = "2018"
+description = "Encode, decode and crack encoded data"
+repository = "https://github.com/skyf0l/BaseCracker"
+readme = "README.md"
+keywords = ["encoder", "decoder", "cracker", "ctf", "base64", "hex", "binary"]
+categories = ["command-line-utilities", "encoding", "text-processing"]
+# license = ""
+
+[dependencies]
+serde_json = "1.0.59"
+
+[dependencies.rug]
+version = "1.14"
+default-features = false
+features = ["integer"]
+
+[dependencies.clap]
+version = "3.1.6"
+features = ["derive"]
