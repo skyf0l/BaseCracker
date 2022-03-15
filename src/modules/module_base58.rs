@@ -6,18 +6,23 @@ impl Base for Base58 {
     fn get_name(&self) -> &'static str {
         "base58"
     }
+
     fn get_short_name(&self) -> &'static str {
         "b58"
     }
+
     fn get_base(&self) -> &'static str {
         "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
     }
+
     fn get_padding(&self) -> Option<&'static str> {
         None
     }
+
     fn encode(&self, decoded: &str) -> Result<String, String> {
         encode_decimal(decoded, self.get_base(), 1)
     }
+
     fn decode(&self, encoded: &str) -> Result<String, String> {
         let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
         decode_decimal(encoded.as_str(), self.get_base())

@@ -8,15 +8,19 @@ impl Base for Base64 {
     fn get_name(&self) -> &'static str {
         "base64"
     }
+
     fn get_short_name(&self) -> &'static str {
         "b64"
     }
+
     fn get_base(&self) -> &'static str {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     }
+
     fn get_padding(&self) -> Option<&'static str> {
         Some("=")
     }
+
     fn encode(&self, decoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
@@ -25,6 +29,7 @@ impl Base for Base64 {
 
         encode_abstract(decoded, self.get_base(), padding, 6, 4)
     }
+
     fn decode(&self, encoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
