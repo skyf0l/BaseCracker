@@ -3,11 +3,11 @@ name = "basecracker"
 version = "0.1.0"
 authors = ["skyf0l"]
 edition = "2018"
-description = "A base cracker tool for ctfs and guessings"
+description = "Encode, decode and crack encoded data"
 repository = "https://github.com/skyf0l/BaseCracker"
 readme = "README.md"
-keywords = ["cracker", "base64", "hex", "ctf"]
-categories = ["ctf-tools"]
+keywords = ["encoder", "decoder", "cracker", "ctf", "base64", "hex", "binary"]
+categories = ["command-line-utilities", "encoding", "text-processing"]
 # license = ""
 
 [dependencies]
