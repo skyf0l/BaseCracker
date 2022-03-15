@@ -1,6 +1,5 @@
 pub struct Base85;
 
-use super::module_base2::Base2;
 use super::utils::*;
 use super::*;
 
@@ -95,90 +94,35 @@ impl Base for Base85 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_encode_decode() {
+    let base = Base85;
+    const TESTLIST: [(&str, &str); 10] = [
+        ("Hello World!", "87cURD]i,\"Ebo80"),
+        ("BaseCracker", "6=FqH6ZQUFCLqM"),
+        ("\x7fELF", "Imm%#"),
+        ("", ""),
+        ("a", "@/"),
+        ("aa", "@:9"),
+        ("aaa", "@:<R"),
+        ("aaaa", "@:<SQ"),
+        ("aaaaa", "@:<SQ@/"),
+        ("aaaaaa", "@:<SQ@:9"),
+    ];
 
-    #[test]
-    fn test_base85_encode_1() {
-        let base85 = Base85;
-        let result = base85.encode("Hello World!").unwrap();
-        assert_eq!(result, "87cURD]i,\"Ebo80");
-    }
+    for test in TESTLIST.iter() {
+        // encode
+        let encoded = match base.encode(&test.0) {
+            Ok(encoded) => encoded,
+            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
+        };
+        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
 
-    #[test]
-    fn test_base85_encode_2() {
-        let base85 = Base85;
-        let result = base85.encode("").unwrap();
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn test_base85_encode_3() {
-        let base85 = Base85;
-        let result = base85.encode("a").unwrap();
-        assert_eq!(result, "@/");
-    }
-
-    #[test]
-    fn test_base85_encode_4() {
-        let base85 = Base85;
-        let result = base85.encode("ab").unwrap();
-        assert_eq!(result, "@:B");
-    }
-
-    #[test]
-    fn test_base85_encode_5() {
-        let base85 = Base85;
-        let result = base85.encode("abc").unwrap();
-        assert_eq!(result, "@:E^");
-    }
-
-    #[test]
-    fn test_base85_encode_6() {
-        let base85 = Base85;
-        let result = base85.encode("abca").unwrap();
-        assert_eq!(result, "@:E_T");
-    }
-
-    #[test]
-    fn test_base85_decode_1() {
-        let base85 = Base85;
-        let result = base85.decode("87cURD]i,\"Ebo80").unwrap();
-        assert_eq!(result, "Hello World!");
-    }
-
-    #[test]
-    fn test_base85_decode_2() {
-        let base85 = Base85;
-        let result = base85.decode("").unwrap();
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn test_base85_decode_3() {
-        let base85 = Base85;
-        let result = base85.decode("@/").unwrap();
-        assert_eq!(result, "a");
-    }
-
-    #[test]
-    fn test_base85_decode_4() {
-        let base85 = Base85;
-        let result = base85.decode("@:B").unwrap();
-        assert_eq!(result, "ab");
-    }
-
-    #[test]
-    fn test_base85_decode_5() {
-        let base85 = Base85;
-        let result = base85.decode("@:E^").unwrap();
-        assert_eq!(result, "abc");
-    }
-
-    #[test]
-    fn test_base85_decode_6() {
-        let base85 = Base85;
-        let result = base85.decode("@:E_T").unwrap();
-        assert_eq!(result, "abca");
+        // decode
+        let decoded = match base.decode(&encoded) {
+            Ok(decoded) => decoded,
+            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
+        };
+        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
     }
 }

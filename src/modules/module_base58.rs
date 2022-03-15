@@ -30,60 +30,35 @@ impl Base for Base58 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_encode_decode() {
+    let base = Base58;
+    const TESTLIST: [(&str, &str); 10] = [
+        ("Hello World!", "2NEpo7TZRRrLZSi2U"),
+        ("BaseCracker", "HTivuUbjqtbbaC1"),
+        ("\x7fELF", "4Fghph"),
+        ("", ""),
+        ("a", "2g"),
+        ("aa", "8Qp"),
+        ("aaa", "Zi88"),
+        ("aaaa", "3VNWTa"),
+        ("aaaaa", "BzDw2JL"),
+        ("aaaaaa", "qVa5SjWY"),
+    ];
 
-    #[test]
-    fn test_encode_1() {
-        let base = Base58;
-        assert_eq!(
-            base.encode(&String::from("Hello World!")).unwrap(),
-            "2NEpo7TZRRrLZSi2U"
-        );
-    }
+    for test in TESTLIST.iter() {
+        // encode
+        let encoded = match base.encode(&test.0) {
+            Ok(encoded) => encoded,
+            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
+        };
+        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
 
-    #[test]
-    fn test_encode_2() {
-        let base = Base58;
-        assert_eq!(base.encode(&String::from("a")).unwrap(), "2g");
-    }
-
-    #[test]
-    fn test_encode_3() {
-        let base = Base58;
-        assert_eq!(base.encode(&String::from("ab")).unwrap(), "8Qq");
-    }
-
-    #[test]
-    fn test_encode_4() {
-        let base = Base58;
-        assert_eq!(base.encode(&String::from("abc")).unwrap(), "ZiCa");
-    }
-
-    #[test]
-    fn test_decode_1() {
-        let base = Base58;
-        assert_eq!(
-            base.decode(&String::from("2NEpo7TZRRrLZSi2U")).unwrap(),
-            "Hello World!"
-        );
-    }
-
-    #[test]
-    fn test_decode_2() {
-        let base = Base58;
-        assert_eq!(base.decode(&String::from("2g")).unwrap(), "a");
-    }
-
-    #[test]
-    fn test_decode_3() {
-        let base = Base58;
-        assert_eq!(base.decode(&String::from("8Qq")).unwrap(), "ab");
-    }
-
-    #[test]
-    fn test_decode_4() {
-        let base = Base58;
-        assert_eq!(base.decode(&String::from("ZiCa")).unwrap(), "abc");
+        // decode
+        let decoded = match base.decode(&encoded) {
+            Ok(decoded) => decoded,
+            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
+        };
+        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
     }
 }
