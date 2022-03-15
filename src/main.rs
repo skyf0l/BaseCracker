@@ -151,6 +151,79 @@ fn get_file_content(arg: &str) -> Result<String, String> {
     }
 }
 
+fn subcommand_encode(
+    plaintext: &str,
+    specified_bases: &Vec<Box<dyn Base>>,
+    _arg_verbose: bool,
+) -> Result<(), String> {
+    // get plaintext from file or argument
+    let plaintext = get_file_content(&plaintext)?;
+
+    // encode
+    let cipher = basecracker::encode(&plaintext, specified_bases)?;
+    println!("{}", cipher);
+    Ok(())
+}
+
+fn subcommand_decode(
+    cipher: &str,
+    specified_bases: &Vec<Box<dyn Base>>,
+    _arg_verbose: bool,
+) -> Result<(), String> {
+    // get cipher from file or argument
+    let cipher = get_file_content(&cipher)?;
+
+    // decode
+    let plaintext = basecracker::decode(&cipher, specified_bases)?;
+    println!("{}", plaintext);
+    Ok(())
+}
+
+fn subcommand_crack(
+    cipher: &str,
+    specified_bases: &Option<Vec<Box<dyn Base>>>,
+    _arg_verbose: bool,
+    arg_json: bool,
+    arg_quiet: bool,
+) -> Result<(), String> {
+    // get cipher from file or argument
+    let cipher = get_file_content(&cipher)?;
+
+    // crack subcommand
+    let plaintexts = match specified_bases {
+        Some(bases) => basecracker::basecracker_with_bases(&cipher, &bases),
+        None => basecracker::basecracker(&cipher),
+    };
+
+    if arg_json {
+        // output in json format
+        println!("{}", plaintexts_to_json(&cipher, &plaintexts));
+        // if no plaintexts were found, exit with error code
+        if plaintexts.len() == 0 {
+            std::process::exit(1);
+        }
+    } else {
+        // output in plaintext format
+        if plaintexts.len() != 0 {
+            for (plaintext, bases) in plaintexts {
+                if !arg_quiet {
+                    println!("Recipe: {}", bases.join(" -> "));
+                    println!("Result: {}", plaintext);
+                } else {
+                    println!("{}", plaintext);
+                }
+            }
+        } else {
+            // if no plaintexts were found, display error and exit with error code
+            if !arg_quiet {
+                eprintln!("No plaintexts found");
+            }
+            std::process::exit(1);
+        }
+    }
+    Ok(())
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -170,99 +243,45 @@ fn main() {
             None => None,
         };
 
-        if let Some(plaintext) = args.encode {
-            // get plaintext from file or argument
-            let plaintext = match get_file_content(&plaintext) {
-                Ok(plaintext) => plaintext,
-                Err(err) => {
-                    eprintln!("{}", err);
-                    std::process::exit(1);
-                }
-            };
-
-            // encode subcommand
-            if let Some(bases) = specified_bases {
-                match basecracker::encode(&plaintext, &bases) {
-                    Ok(cipher) => println!("{}", cipher),
-                    Err(err) => {
-                        eprintln!("{}", err);
+        match {
+            if let Some(cipher) = args.crack {
+                // call crack subcommand
+                subcommand_crack(
+                    &cipher,
+                    &specified_bases,
+                    args.verbose,
+                    args.json,
+                    args.quiet,
+                )
+            } else {
+                // get bases
+                let specified_bases = match specified_bases {
+                    Some(bases) => bases,
+                    None => {
+                        eprintln!("No bases specified");
+                        eprintln!("Use --bases to specify bases");
                         std::process::exit(1);
                     }
-                }
-            } else {
-                eprintln!("No bases specified");
-                eprintln!("Use --bases to specify bases");
-            }
-        } else if let Some(cipher) = args.decode {
-            // get cipher from file or argument
-            let cipher = match get_file_content(&cipher) {
-                Ok(cipher) => cipher,
-                Err(err) => {
-                    eprintln!("{}", err);
-                    std::process::exit(1);
-                }
-            };
+                };
 
-            // decode subcommand
-            if let Some(bases) = specified_bases {
-                match basecracker::decode(&cipher, &bases) {
-                    Ok(plaintext) => println!("{}", plaintext),
-                    Err(err) => {
-                        eprintln!("{}", err);
-                        std::process::exit(1);
-                    }
-                }
-            } else {
-                eprintln!("No bases specified");
-                eprintln!("Use --bases to specify bases");
-            }
-        } else if let Some(cipher) = args.crack {
-            // get cipher from file or argument
-            let cipher = match get_file_content(&cipher) {
-                Ok(cipher) => cipher,
-                Err(err) => {
-                    eprintln!("{}", err);
-                    std::process::exit(1);
-                }
-            };
-
-            // crack subcommand
-            let plaintexts = match specified_bases {
-                Some(bases) => basecracker::basecracker_with_bases(&cipher, &bases),
-                None => basecracker::basecracker(&cipher),
-            };
-
-            if args.json {
-                // output in json format
-                println!("{}", plaintexts_to_json(&cipher, &plaintexts));
-                // if no plaintexts were found, exit with error code
-                if plaintexts.len() == 0 {
-                    std::process::exit(1);
-                }
-            } else {
-                // output in plaintext format
-                if plaintexts.len() != 0 {
-                    for (plaintext, bases) in plaintexts {
-                        if !args.quiet {
-                            println!("Recipe: {}", bases.join(" -> "));
-                            println!("Result: {}", plaintext);
-                        } else {
-                            println!("{}", plaintext);
-                        }
-                    }
+                // call encode or decode subcommand
+                if let Some(plaintext) = args.encode {
+                    subcommand_encode(&plaintext, &specified_bases, args.verbose)
+                } else if let Some(cipher) = args.decode {
+                    subcommand_decode(&cipher, &specified_bases, args.verbose)
                 } else {
-                    // if no plaintexts were found, display error and exit with error code
-                    if !args.quiet {
-                        eprintln!("No plaintexts found");
-                    }
-                    std::process::exit(1);
+                    // no subcommand specified
+                    Err(String::from(
+                        "No subcommand specified\nFor more information try --help",
+                    ))
                 }
             }
-        } else {
-            // no subcommand specified
-            eprintln!("No action specified");
-            eprintln!("For more information try --help");
-            std::process::exit(1);
+        } {
+            Ok(_) => (),
+            Err(err) => {
+                eprintln!("{}", err);
+                std::process::exit(1);
+            }
         }
     }
 }
