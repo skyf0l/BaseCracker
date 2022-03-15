@@ -6,6 +6,7 @@ pub mod module_base32;
 pub mod module_base58;
 pub mod module_base62;
 pub mod module_base64;
+pub mod module_base85;
 pub mod module_hex;
 
 mod utils;
@@ -71,6 +72,7 @@ pub fn get_bases() -> Vec<Box<dyn Base>> {
         Box::new(module_base58::Base58),
         Box::new(module_base62::Base62),
         Box::new(module_base64::Base64),
+        Box::new(module_base85::Base85),
     ];
     bases
 }
