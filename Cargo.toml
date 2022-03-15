@@ -11,6 +11,7 @@ categories = ["ctf-tools"]
 # license = ""
 
 [dependencies]
+serde_json = "1.0.59"
 
 [dependencies.rug]
 version = "1.14"
