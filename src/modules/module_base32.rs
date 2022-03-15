@@ -28,15 +28,19 @@ impl Base for Base32 {
     fn get_name(&self) -> &'static str {
         "base32"
     }
+
     fn get_short_name(&self) -> &'static str {
         "b32"
     }
+
     fn get_base(&self) -> &'static str {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
     }
+
     fn get_padding(&self) -> Option<&'static str> {
         Some("=")
     }
+
     fn encode(&self, decoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
@@ -45,6 +49,7 @@ impl Base for Base32 {
 
         encode_abstract(decoded, self.get_base(), padding, 5, 8)
     }
+
     fn decode(&self, encoded: &str) -> Result<String, String> {
         let padding = match self.get_padding() {
             Some(c) => c,
