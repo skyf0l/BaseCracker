@@ -7,8 +7,9 @@ use modules::Base;
 pub mod utils;
 pub use utils::get_printable_percentage;
 
-pub fn encode(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<String, String> {
-    let mut result = cipher.to_string();
+/// Encode given plaintext using the specified bases and return the result
+pub fn encode(plaintext: &str, bases: &Vec<Box<dyn Base>>) -> Result<String, String> {
+    let mut result = plaintext.to_string();
 
     for base in bases {
         result = base.encode(&result)?;
@@ -16,6 +17,20 @@ pub fn encode(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<String, String
     Ok(result)
 }
 
+/// Encode given plaintext using the specified bases and return steps and result
+/// It consumes more memory than encode()
+///
+/// Used for debugging
+pub fn encode_steps(plaintext: &str, bases: &Vec<Box<dyn Base>>) -> Result<Vec<String>, String> {
+    let mut result = vec![plaintext.to_string()];
+
+    for base in bases {
+        result.push(base.encode(&result[result.len() - 1])?);
+    }
+    Ok(result)
+}
+
+/// Decode given cipher using the specified bases and return the result
 pub fn decode(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<String, String> {
     let mut result = cipher.to_string();
 
@@ -25,6 +40,21 @@ pub fn decode(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<String, String
     Ok(result)
 }
 
+/// Decode given cipher using the specified bases and return steps and result.
+/// It consumes more memory than decode().
+///
+/// Used for debugging.
+pub fn decode_steps(cipher: &str, bases: &Vec<Box<dyn Base>>) -> Result<Vec<String>, String> {
+    let mut result = vec![cipher.to_string()];
+
+    for base in bases {
+        result.push(base.decode(&result[result.len() - 1])?);
+    }
+    Ok(result)
+}
+
+/// Iterate over all bases and try to decode the cipher.
+/// Return a vector of (plaintext, bases) containing successful decodes.
 pub fn crack_round(
     cipher: &str,
     bases: &Vec<Box<dyn Base>>,
@@ -45,10 +75,12 @@ pub fn crack_round(
     result
 }
 
+/// Try to crack the cipher using the all bases.
 pub fn basecracker(cipher: &str) -> Vec<(String, Vec<String>)> {
     basecracker_with_bases(cipher, &modules::get_bases())
 }
 
+/// Try to crack the cipher using the specified bases.
 pub fn basecracker_with_bases(
     cipher: &str,
     bases: &Vec<Box<dyn Base>>,
@@ -237,6 +269,27 @@ mod tests {
     }
 
     #[test]
+    fn test_encode_steps_base64_hex_base58() {
+        assert_eq!(
+            encode_steps(
+                "Hello World!",
+                &get_bases_from_names(&vec![
+                    "base64".to_string(),
+                    "hex".to_string(),
+                    "base58".to_string()
+                ])
+                .unwrap()
+            ),
+            Ok(vec![
+                "Hello World!".to_string(),
+                "SGVsbG8gV29ybGQh".to_string(),
+                "53475673624738675632397962475168".to_string(),
+                "4afto9ow5ffzGyMCjboUeq5HbDkPTXpqPX4NMBwUCypB".to_string()
+            ])
+        );
+    }
+
+    #[test]
     fn test_decode_base64_hex_base58() {
         assert_eq!(
             decode(
@@ -249,6 +302,27 @@ mod tests {
                 .unwrap()
             ),
             Ok("Hello World!".to_string())
+        );
+    }
+
+    #[test]
+    fn test_decode_steps_base64_hex_base58() {
+        assert_eq!(
+            decode_steps(
+                "4afto9ow5ffzGyMCjboUeq5HbDkPTXpqPX4NMBwUCypB",
+                &get_bases_from_names(&vec![
+                    "base58".to_string(),
+                    "hex".to_string(),
+                    "base64".to_string()
+                ])
+                .unwrap()
+            ),
+            Ok(vec![
+                "4afto9ow5ffzGyMCjboUeq5HbDkPTXpqPX4NMBwUCypB".to_string(),
+                "53475673624738675632397962475168".to_string(),
+                "SGVsbG8gV29ybGQh".to_string(),
+                "Hello World!".to_string()
+            ])
         );
     }
 }
