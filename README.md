@@ -11,7 +11,7 @@ BaseCracker is a tool to encode, decode and crack encoded data. It can be really
 You can build and install it from source using cargo:
 
 ```console
-cargo install --git https://github.com/skyf0l/BaseCracker.git basecracker
+cargo install basecracker
 ```
 
 ## Current supported encodings
