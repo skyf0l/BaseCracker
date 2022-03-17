@@ -2,13 +2,19 @@
 name = "basecracker"
 version = "0.1.0"
 authors = ["skyf0l"]
-edition = "2018"
-description = "Encode, decode and crack encoded data"
-repository = "https://github.com/skyf0l/BaseCracker"
+edition = "2021"
+description = "Encode, Decode and Crack encoded data, useful to crack some random encoded strings in CTFs."
 readme = "README.md"
-keywords = ["encoder", "decoder", "cracker", "ctf", "base64", "hex", "binary"]
+repository = "https://github.com/skyf0l/BaseCracker"
+license = "MIT OR Apache-2.0"
+keywords = ["encoder", "decoder", "cracker", "ctf", "guessing"]
 categories = ["command-line-utilities", "encoding", "text-processing"]
-# license = ""
+include = [
+  "/src/**/*.rs",
+  "/Cargo.toml",
+  "/LICENSE*",
+  "/README.md"
+]
 
 [dependencies]
 serde_json = "1.0.59"
