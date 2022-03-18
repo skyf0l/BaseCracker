@@ -1,7 +1,9 @@
 # BaseCracker
 
-[![Tests](https://github.com/skyf0l/BaseCracker/actions/workflows/tests.yml/badge.svg)](https://github.com/skyf0l/BaseCracker/actions/workflows/tests.yml)
+[![Build](https://github.com/skyf0l/BaseCracker/actions/workflows/build.yml/badge.svg)](https://github.com/skyf0l/BaseCracker/actions/workflows/build.yml)
+[![](https://img.shields.io/crates/v/basecracker.svg)](https://crates.io/crates/basecracker)
 [![Help Wanted](https://img.shields.io/github/issues/skyf0l/BaseCracker/help%20wanted?color=green)](https://github.com/skyf0l/BaseCracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+[![codecov](https://codecov.io/gh/skyf0l/basecracker/branch/master/graph/badge.svg)](https://codecov.io/gh/skyf0l/basecracker)
 [![Lines Of Code](https://tokei.rs/b1/github/skyf0l/BaseCracker?category=code)](https://github.com/skyf0l/BaseCracker)
 
 BaseCracker is a tool to encode, decode and crack encoded data. It can be really useful to crack some random encoded strings in CTFs.
@@ -11,7 +13,7 @@ BaseCracker is a tool to encode, decode and crack encoded data. It can be really
 You can build and install it from source using cargo:
 
 ```console
-cargo install --git https://github.com/skyf0l/BaseCracker.git basecracker
+cargo install basecracker
 ```
 
 ## Current supported encodings
