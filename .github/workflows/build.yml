@@ -1,0 +1,89 @@
+name: Build
+# inpired by https://github.com/xd009642/tarpaulin/blob/develop/.github/workflows/rust.yml
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version:
+          - stable
+          - beta
+          - nightly
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.version }}
+          override: true
+          components: rustfmt
+      - name: clean
+        run: cargo clean
+      - name: build
+        run: cargo build
+        env:
+          RUST_BACKTRACE: 1
+      - name: test
+        run: cargo test
+        env:
+          RUST_BACKTRACE: 1
+      - name: ignored test
+        run: cargo test -- --ignored || true
+        env:
+          RUST_BACKTRACE: 1
+        if: matrix.version == 'nightly'
+      - name: check formatting
+        run: cargo fmt -- --check
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        version:
+          - nightly
+        target:
+          - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.version }}
+          override: true
+      - name: build
+        run: cargo build
+      - name: test
+        run: cargo test -- || true
+        env:
+          RUST_BACKTRACE: 1
+  mac:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        version:
+          - nightly
+        target:
+          - x86_64-apple-darwin
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.version }}
+          override: true
+      - name: build
+        run: cargo build
+      - name: test
+        run: cargo test -- || true
+        env:
+          RUST_BACKTRACE: 1
