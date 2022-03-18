@@ -1,6 +1,6 @@
 [package]
 name = "basecracker"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["skyf0l"]
 edition = "2021"
 description = "Encode, Decode and Crack encoded data, useful to crack some random encoded strings in CTFs."
@@ -18,11 +18,8 @@ include = [
 
 [dependencies]
 serde_json = "1.0.59"
-
-[dependencies.rug]
-version = "1.14"
-default-features = false
-features = ["integer"]
+num-bigint = "0.4"
+num-traits = "0.2"
 
 [dependencies.clap]
 version = "3.1.6"

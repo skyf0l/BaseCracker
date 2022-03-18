@@ -65,7 +65,7 @@ impl Base for Base32 {
                 if index == 0 {
                     decoded_base2.push_str("00000");
                 } else {
-                    decoded_base2.push_str(&to_base(&Integer::from(index), "01", 5));
+                    decoded_base2.push_str(&to_base(&BigUint::from(index), "01", 5));
                 }
             } else if padding.contains(c) {
                 nb_padding += 1;

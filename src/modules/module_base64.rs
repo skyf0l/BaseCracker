@@ -44,7 +44,7 @@ impl Base for Base64 {
                 if index == 0 {
                     decoded_base2.push_str("000000");
                 } else {
-                    decoded_base2.push_str(&to_base(&Integer::from(index), "01", 6));
+                    decoded_base2.push_str(&to_base(&BigUint::from(index), "01", 6));
                 }
             } else if padding.contains(c) {
                 if decoded_base2.len() < 2 {
