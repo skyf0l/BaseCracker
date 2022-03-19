@@ -17,6 +17,7 @@ jobs:
           cargo tarpaulin --ignore-tests --exclude-files src/main.rs --all-features --workspace --out Xml
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v2
+        run: |
+          bash <(curl -s https://codecov.io/bash)
         with:
           fail_ci_if_error: true
