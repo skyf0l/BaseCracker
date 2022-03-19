@@ -30,6 +30,7 @@ impl Base for Base2 {
 }
 
 #[cfg(test)]
+#[cfg(not(tarpaulin_include))]
 #[test]
 fn test_encode_decode() {
     let base = Base2;

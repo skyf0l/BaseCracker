@@ -12,6 +12,7 @@ pub fn get_printable_percentage(s: &str) -> f32 {
 }
 
 #[cfg(test)]
+#[cfg(not(tarpaulin_include))]
 #[test]
 fn test_get_printable_percentage() {
     const TESTLIST: [(&str, f32); 5] = [
