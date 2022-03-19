@@ -6,3 +6,4 @@ coverage:
       default:
         target: 80%
         threshold: 5%
+comment: false
