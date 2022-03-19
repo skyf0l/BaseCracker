@@ -31,6 +31,7 @@ impl Base for Base36 {
 }
 
 #[cfg(test)]
+#[cfg(not(tarpaulin_include))]
 #[test]
 fn test_encode_decode() {
     let base = Base36;

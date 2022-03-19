@@ -158,6 +158,7 @@ pub fn encode_abstract(
 }
 
 #[cfg(test)]
+#[cfg(not(tarpaulin_include))]
 mod tests {
     use super::*;
     use crate::modules::{module_base2::Base2, module_base64::Base64};

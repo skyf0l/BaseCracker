@@ -66,6 +66,7 @@ pub fn from_base(s: &str, base: &str) -> Result<BigUint, &'static str> {
 }
 
 #[cfg(test)]
+#[cfg(not(tarpaulin_include))]
 mod tests {
     use super::*;
 

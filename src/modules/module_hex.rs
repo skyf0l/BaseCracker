@@ -31,6 +31,7 @@ impl Base for Hex {
 }
 
 #[cfg(test)]
+#[cfg(not(tarpaulin_include))]
 #[test]
 fn test_encode_decode() {
     let base = Hex;

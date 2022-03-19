@@ -110,6 +110,7 @@ struct Args {
     quiet: bool,
 }
 
+#[cfg(not(tarpaulin_include))]
 fn subcommand_list() {
     println!("Supported bases are:");
     for (short, long) in basecracker::get_bases_names() {
@@ -151,6 +152,7 @@ fn get_file_content(arg: &str) -> Result<String, String> {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 fn subcommand_encode(
     plaintext: &str,
     specified_bases: &Vec<Box<dyn Base>>,
@@ -178,6 +180,7 @@ fn subcommand_encode(
     Ok(())
 }
 
+#[cfg(not(tarpaulin_include))]
 fn subcommand_decode(
     cipher: &str,
     specified_bases: &Vec<Box<dyn Base>>,
@@ -205,6 +208,7 @@ fn subcommand_decode(
     Ok(())
 }
 
+#[cfg(not(tarpaulin_include))]
 fn subcommand_crack(
     cipher: &str,
     specified_bases: &Option<Vec<Box<dyn Base>>>,
@@ -273,6 +277,7 @@ fn subcommand_crack(
     Ok(())
 }
 
+#[cfg(not(tarpaulin_include))]
 fn main() {
     let args = Args::parse();
 

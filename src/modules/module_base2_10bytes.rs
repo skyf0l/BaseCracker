@@ -34,6 +34,7 @@ impl Base for Base2_10bytes {
 }
 
 #[cfg(test)]
+#[cfg(not(tarpaulin_include))]
 #[test]
 fn test_encode_decode() {
     let base = Base2_10bytes;
