@@ -14,9 +14,10 @@ jobs:
       - name: Generate code coverage
         run: |
           cargo install cargo-tarpaulin
-          cargo tarpaulin --exclude-files src/main.rs --all-features --workspace --out Xml
+          cargo tarpaulin --ignore-tests --exclude-files src/main.rs --all-features --workspace --out Xml
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov
