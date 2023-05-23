@@ -1,9 +1,11 @@
 name: coverage
 
-on: [push]
+on:
+  push:
+    branches: [master]
 
 jobs:
-  test:
+  coverage:
     name: Coverage
     runs-on: ubuntu-latest
 
