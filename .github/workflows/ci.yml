@@ -9,90 +9,83 @@ on:
 env:
   RUST_BACKTRACE: 1
 
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: |-
+    ${{ github.workflow }}-${{ github.event.pull_request.head.label || github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  linux:
-    name: Linux
+  ci:
+    name: CI
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        version:
-          - stable
-          - beta
-          - nightly
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-unknown-linux-musl
-      fail-fast: false
+    timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - name: Stable with rustfmt and clippy
+        uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.version }}
-          override: true
-          components: rustfmt
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install cargo-tarpaulin
 
-      - name: clean
-        run: cargo clean
+      - name: Check coding style
+        run: cargo fmt --check --all
 
-      - name: build
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Build
         run: cargo build
 
-      - name: test
-        run: cargo test
+      - name: Test
+        run: cargo tarpaulin --out Xml
 
-      - name: ignored test
-        run: cargo test -- --ignored || true
-        if: matrix.version == 'nightly'
-
-      - name: check formatting
-        run: cargo fmt -- --check
+      - name: Upload to codecov.io
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov
 
   windows:
-    name: Windows
+    name: Build on Windows
     runs-on: windows-latest
-    strategy:
-      matrix:
-        version:
-          - nightly
-        target:
-          - x86_64-pc-windows-gnu
-          - x86_64-pc-windows-msvc
-      fail-fast: false
+    timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.version }}
-          override: true
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
 
-      - name: build
+      - name: Build
         run: cargo build
 
-      - name: test
-        run: cargo test -- || true
+      - name: Test
+        run: cargo nextest run
 
   mac:
-    name: MacOs
+    name: Build on MacOs
     runs-on: macos-latest
-    strategy:
-      matrix:
-        version:
-          - nightly
-        target:
-          - x86_64-apple-darwin
-      fail-fast: false
+    timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.version }}
-          override: true
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
 
-      - name: build
+      - name: Build
         run: cargo build
 
-      - name: test
-        run: cargo test -- || true
+      - name: Test
+        run: cargo nextest run
