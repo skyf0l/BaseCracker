@@ -59,13 +59,13 @@ mod tests {
 
         for (plaintext, ciphertext) in TESTLIST.iter() {
             assert_eq!(
-                base.encode(*plaintext),
+                base.encode(plaintext),
                 *ciphertext,
                 "Encoding \"{plaintext}\" failed"
             );
 
             assert_eq!(
-                base.decode(*ciphertext).unwrap(),
+                base.decode(ciphertext).unwrap(),
                 *plaintext,
                 "Decoding \"{plaintext}\" failed"
             );

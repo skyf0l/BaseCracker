@@ -108,7 +108,7 @@ pub fn get_base_from_name(name: &str) -> Result<Box<dyn Base>, BaseError> {
 }
 
 /// Get a list of bases from a list of names or short names.
-pub fn get_bases_from_names(names: &Vec<String>) -> Result<Vec<Box<dyn Base>>, BaseError> {
+pub fn get_bases_from_names(names: &[String]) -> Result<Vec<Box<dyn Base>>, BaseError> {
     names.iter().map(|name| get_base_from_name(name)).collect()
 }
 
