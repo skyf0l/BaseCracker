@@ -1,341 +1,155 @@
+use clap::{command, Parser, Subcommand};
+use main_error::MainError;
 use std::path::Path;
 
-use clap::Parser;
-use serde_json::json;
+use basecracker::{decode, encode, BaseError, DecodeError};
 
-use basecracker::{self, modules::Base};
-
-/// Convert result of basecracker in json format:
-///
-/// ```json
-/// {
-///   "cipher": ...,
-///   "plaintexts": [
-///     {
-///       "plaintext": ...,
-///       "bases": [
-///         ...,
-///         ...
-///       ]
-///     },
-///     ...
-///   ]
-/// }
-/// ```
-fn plaintexts_to_json(cipher: &str, plaintexts: &Vec<(String, Vec<String>)>) -> String {
-    let mut plaintexts_json = vec![];
-    for (plaintext, bases) in plaintexts {
-        plaintexts_json.push(json!({
-            "plaintext": plaintext,
-            "bases": json!(bases)
-        }));
-    }
-    json!({
-        "cipher": cipher,
-        "plaintexts": json!(plaintexts_json)
-    })
-    .to_string()
-}
-
-#[derive(Parser, Debug)]
-#[clap(version, about)]
+#[derive(Parser, Debug, Clone)]
+#[command(author, version, about)]
 struct Args {
-    /// Encode given plaintext/file using the specified bases
-    #[clap(
-        short,
-        long,
-        value_name = "PLAINTEXT",
-        conflicts_with_all = &["decode", "crack", "list"]
-    )]
-    encode: Option<String>,
+    #[clap(flatten)]
+    options: Options,
+    /// Subcommands.
+    #[command(subcommand)]
+    subcommand: SubCommand,
+}
 
-    /// Decode given cipher/file using the specified bases
-    #[clap(
-        short,
-        long,
-        value_name = "CIPHER",
-        conflicts_with_all = &["encode", "crack", "list"]
-    )]
-    decode: Option<String>,
-
-    /// Crack the cipher/file using the specified bases (default: all)
-    #[clap(
-        short,
-        long,
-        value_name = "CIPHER",
-        conflicts_with_all = &["encode", "decode", "list"]
-    )]
-    crack: Option<String>,
-
-    /// Set base to use (can be separated by comma or space)
-    #[clap(
-        short,
-        long,
-        min_values = 1,
-        requires_all = &["encode", "decode", "crack"]
-    )]
-    bases: Option<Vec<String>>,
-
-    /// Reverse bases order (default: false)
-    #[clap(
-        short,
-        long,
-        requires_all = &["encode", "decode", "bases"]
-    )]
-    reversed: bool,
-
-    /// List supported bases
-    #[clap(
-        short,
-        long,
-        conflicts_with_all = &["encode", "decode", "crack"],
-    )]
-    list: bool,
-
-    /// Output cracker results in json format
-    #[clap(
-        short,
-        long,
-        requires = "crack",
-        conflicts_with_all = &["verbose", "quiet"]
-    )]
-    json: bool,
-
-    /// Verbose mode, print encoding/decoding steps
-    #[clap(short, long, conflicts_with_all = &["quiet", "json"])]
-    verbose: bool,
-
-    /// Quiet mode, don't print anything except results
-    #[clap(short, long, conflicts_with_all = &["verbose", "json"])]
+/// Options.
+#[derive(Parser, Debug, Clone)]
+struct Options {
+    /// Quiet mode (only print the result)
+    #[clap(short, long)]
     quiet: bool,
+    /// Verbose mode
+    #[clap(short, long)]
+    verbose: bool,
+    /// Minimum printable percentage to consider a result valid
+    #[clap(short, long, default_value = "0.9")]
+    min_printable_percentage: f32,
+    /// Do not output the trailing newline
+    #[clap(short, long)]
+    no_newline: bool,
 }
 
-#[cfg(not(tarpaulin_include))]
-fn subcommand_list() {
-    println!("Supported bases are:");
-    for (short, long) in basecracker::get_bases_names() {
-        println!("  - {:15}({})", long, short);
-    }
+/// Subcommands.
+#[derive(Subcommand, Debug, Clone)]
+enum SubCommand {
+    /// Encode given plaintext/file using the specified bases
+    Encode {
+        /// The plaintext to encode (can be a file)
+        plaintext: String,
+        /// The bases to use (can be separated by comma or space)
+        bases: Bases,
+    },
+    /// Decode given cipher/file using the specified bases
+    Decode {
+        /// The cipher to decode (can be a file)
+        ciphertext: String,
+        /// The bases to use (can be separated by comma or space)
+        bases: Bases,
+    },
+    /// Crack given cipher/file
+    Crack {
+        /// The cipher to crack (can be a file)
+        ciphertext: String,
+    },
 }
 
-fn parse_bases(bases: &Vec<String>, reversed: bool) -> Result<Vec<Box<dyn Base>>, String> {
-    // split bases by comma or space
-    let mut bases = bases
-        // split by comma
-        .iter()
-        .flat_map(|base| base.split(',').map(|b| b.to_string()))
-        .collect::<Vec<String>>()
-        // split by space
-        .iter()
-        .flat_map(|base| base.split(' ').map(|b| b.to_string()))
-        .collect::<Vec<String>>()
-        // remove empty bases
-        .iter()
-        .map(|base| base.trim())
-        .filter(|base| !base.is_empty())
-        .map(|base| base.to_string())
-        .collect::<Vec<String>>();
-    // reverse bases order if needed
-    if reversed {
-        bases.reverse();
-    }
-    basecracker::get_bases_from_names(&bases)
-}
+#[derive(Debug, Clone)]
+struct Bases(Vec<String>);
 
-// If argument is a file, read it, else return argument as is
-fn get_file_content(arg: &str) -> Result<String, String> {
-    if Path::new(arg).exists() {
-        let content = std::fs::read_to_string(arg).map_err(|e| e.to_string())?;
-        Ok(content)
-    } else {
-        Ok(arg.to_string())
-    }
-}
+impl std::str::FromStr for Bases {
+    type Err = String;
 
-#[cfg(not(tarpaulin_include))]
-fn subcommand_encode(
-    plaintext: &str,
-    specified_bases: &Vec<Box<dyn Base>>,
-    arg_verbose: bool,
-) -> Result<(), String> {
-    // get plaintext from file or argument
-    let plaintext = get_file_content(&plaintext)?;
-
-    // encode
-    if arg_verbose {
-        let ciphers = basecracker::encode_steps(&plaintext, specified_bases)?;
-        println!("Plaintext: {}\n", plaintext);
-        for (i, cipher) in ciphers.iter().enumerate() {
-            println!(
-                "Applying {:10} {}",
-                format!("{}:", specified_bases[i].get_name()),
-                cipher
-            );
-        }
-        println!("\nCipher: {}", ciphers[ciphers.len() - 1]);
-    } else {
-        let cipher = basecracker::encode(&plaintext, specified_bases)?;
-        println!("{}", cipher);
-    }
-    Ok(())
-}
-
-#[cfg(not(tarpaulin_include))]
-fn subcommand_decode(
-    cipher: &str,
-    specified_bases: &Vec<Box<dyn Base>>,
-    arg_verbose: bool,
-) -> Result<(), String> {
-    // get cipher from file or argument
-    let cipher = get_file_content(&cipher)?;
-
-    // decode
-    if arg_verbose {
-        let plaintexts = basecracker::decode_steps(&cipher, specified_bases)?;
-        println!("Cipher: {}\n", cipher);
-        for (i, plaintext) in plaintexts.iter().enumerate() {
-            println!(
-                "Applying {:10} {}",
-                format!("{}:", specified_bases[i].get_name()),
-                plaintext
-            );
-        }
-        println!("\nPlaintext: {}", plaintexts[plaintexts.len() - 1]);
-    } else {
-        let plaintext = basecracker::decode(&cipher, specified_bases)?;
-        println!("{}", plaintext);
-    }
-    Ok(())
-}
-
-#[cfg(not(tarpaulin_include))]
-fn subcommand_crack(
-    cipher: &str,
-    specified_bases: &Option<Vec<Box<dyn Base>>>,
-    arg_verbose: bool,
-    arg_json: bool,
-    arg_quiet: bool,
-) -> Result<(), String> {
-    // get cipher from file or argument
-    let cipher = get_file_content(&cipher)?;
-
-    // crack subcommand
-    let plaintexts = match specified_bases {
-        Some(bases) => basecracker::basecracker_with_bases(&cipher, &bases),
-        None => basecracker::basecracker(&cipher),
-    };
-
-    if arg_json {
-        // output in json format
-        println!("{}", plaintexts_to_json(&cipher, &plaintexts));
-        // if no plaintexts were found, exit with error code
-        if plaintexts.len() == 0 {
-            std::process::exit(1);
-        }
-    } else {
-        // output in plaintext format
-        if plaintexts.len() != 0 {
-            for (plaintext, bases) in &plaintexts {
-                if arg_quiet {
-                    // print only plaintext
-                    println!("{}", plaintext);
+    fn from_str(bases: &str) -> Result<Self, Self::Err> {
+        let bases = bases
+            // Split by comma
+            .split(",")
+            .map(|base| base.to_string())
+            .collect::<Vec<String>>()
+            // Split by space
+            .iter()
+            .flat_map(|base| base.split(' ').map(|b| b.to_string()))
+            .collect::<Vec<String>>()
+            // Remove empty bases
+            .iter()
+            .map(|base| base.trim())
+            .filter(|base| !base.is_empty())
+            .map(|base| base.to_string())
+            .collect::<Vec<String>>()
+            // Check if all bases are valid
+            .iter()
+            .map(|base| {
+                if basecracker::get_base_from_name(base).is_err() {
+                    Err(format!("Invalid base: {}", base))
                 } else {
-                    println!("Recipe: {}", bases.join(","));
-                    if arg_verbose {
-                        // print decoded steps
-                        println!("Cipher: {}", cipher);
-                        let mut tmp_cipher = cipher.clone();
-                        for base_name in bases.iter() {
-                            // unwrap is safe because base_name has been used before
-                            let base = basecracker::get_base_from_name(base_name).unwrap();
-                            tmp_cipher = base.decode(&tmp_cipher).unwrap();
-                            println!(
-                                "Applying {:10} {}",
-                                format!("{}:", base.get_name()),
-                                tmp_cipher
-                            );
-                        }
-                        println!("Result: {}", plaintext);
-                    } else {
-                        println!("Result: {}", plaintext);
-                    }
+                    Ok(base.to_string())
                 }
+            })
+            .collect::<Result<Vec<String>, String>>()?;
 
-                // separate results by newline
-                if plaintexts.len() > 1 {
-                    println!();
-                }
-            }
+        // Check if there is at least one base
+        if bases.is_empty() {
+            Err("No base specified".to_string())
         } else {
-            // if no plaintexts were found, display error and exit with error code
-            if !arg_quiet {
-                eprintln!("No plaintexts found");
-            }
-            std::process::exit(1);
-        }
+            Ok(())
+        }?;
+
+        Ok(Bases(bases))
     }
-    Ok(())
+}
+
+/// If argument is a file, read it and return its content, else return the argument as is
+fn read_file_or_arg(arg: String) -> String {
+    if Path::new(&arg).exists() {
+        let content = std::fs::read_to_string(arg).unwrap();
+        content
+    } else {
+        arg
+    }
+}
+
+#[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
+enum Error {
+    #[error(transparent)]
+    DecodeError(#[from] DecodeError),
+    #[error(transparent)]
+    BaseError(#[from] BaseError),
+}
+
+fn display_result(result: Vec<String>, options: &Options) {
+    if options.no_newline {
+        print!("{}", result.last().unwrap());
+    } else {
+        println!("{}", result.last().unwrap());
+    }
 }
 
 #[cfg(not(tarpaulin_include))]
-fn main() {
+fn main() -> Result<(), MainError> {
     let args = Args::parse();
 
-    if args.list {
-        // list subcommand
-        subcommand_list();
-    } else {
-        // parse bases from args
-        let specified_bases = match args.bases {
-            Some(bases) => match parse_bases(&bases, args.reversed) {
-                Ok(bases) => Some(bases),
-                Err(err) => {
-                    eprintln!("{}", err);
-                    std::process::exit(1);
-                }
-            },
-            None => None,
-        };
+    match args.subcommand {
+        SubCommand::Encode { plaintext, bases } => {
+            let plaintext = read_file_or_arg(plaintext);
+            let bases = basecracker::get_bases_from_names(&bases.0)?;
 
-        match {
-            if let Some(cipher) = args.crack {
-                // call crack subcommand
-                subcommand_crack(
-                    &cipher,
-                    &specified_bases,
-                    args.verbose,
-                    args.json,
-                    args.quiet,
-                )
-            } else {
-                // get bases
-                let specified_bases = match specified_bases {
-                    Some(bases) => bases,
-                    None => {
-                        eprintln!("No bases specified");
-                        eprintln!("Use --bases to specify bases");
-                        std::process::exit(1);
-                    }
-                };
+            let result = encode(&plaintext, &bases);
+            display_result(result, &args.options);
+        }
+        SubCommand::Decode { ciphertext, bases } => {
+            let ciphertext = read_file_or_arg(ciphertext);
+            let bases = basecracker::get_bases_from_names(&bases.0)?;
 
-                // call encode or decode subcommand
-                if let Some(plaintext) = args.encode {
-                    subcommand_encode(&plaintext, &specified_bases, args.verbose)
-                } else if let Some(cipher) = args.decode {
-                    subcommand_decode(&cipher, &specified_bases, args.verbose)
-                } else {
-                    // no subcommand specified
-                    Err(String::from(
-                        "No subcommand specified\nFor more information try --help",
-                    ))
-                }
-            }
-        } {
-            Ok(_) => (),
-            Err(err) => {
-                eprintln!("{}", err);
-                std::process::exit(1);
-            }
+            let result = decode(&ciphertext, &bases)?;
+            display_result(result, &args.options);
+        }
+        SubCommand::Crack { ciphertext } => {
+            let _ciphertext = read_file_or_arg(ciphertext);
+
+            todo!();
         }
     }
+
+    Ok(())
 }

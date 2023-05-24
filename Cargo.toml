@@ -1,26 +1,26 @@
 [package]
 name = "basecracker"
 version = "0.1.1"
-authors = ["skyf0l"]
 edition = "2021"
+authors = ["skyf0l <skyf0lmails@proton.me>"]
 description = "Encode, Decode and Crack encoded data, useful to crack some random encoded strings in CTFs."
-readme = "README.md"
 repository = "https://github.com/skyf0l/BaseCracker"
 license = "MIT OR Apache-2.0"
-keywords = ["encoder", "decoder", "cracker", "ctf", "guessing"]
 categories = ["command-line-utilities", "encoding", "text-processing"]
+keywords = ["encoder", "decoder", "cracker", "ctf", "guessing"]
 include = [
-  "/src/**/*.rs",
-  "/Cargo.toml",
-  "/LICENSE*",
-  "/README.md"
+  "src/**/*",
+  "Cargo.toml",
+  "LICENSE*",
+  "README.md",
 ]
 
 [dependencies]
 serde_json = "1.0.59"
 num-bigint = "0.4"
 num-traits = "0.2"
-
-[dependencies.clap]
-version = "3.1.6"
-features = ["derive"]
+base64 = "0.21.1"
+thiserror = "1.0.40"
+clap = { version = "4.0", features = ["derive", "env"] }
+main_error = "0.1.2"
+iterator-ext = "0.2.1"

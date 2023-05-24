@@ -1,207 +1,135 @@
-pub mod module_base10;
-pub mod module_base2;
-pub mod module_base2_10bytes;
-pub mod module_base2_7bytes;
-pub mod module_base2_9bytes;
-pub mod module_base32;
-pub mod module_base36;
-pub mod module_base58;
-pub mod module_base62;
-pub mod module_base64;
-pub mod module_base85;
-pub mod module_hex;
+use thiserror::Error;
 
-mod utils;
-use utils::*;
+mod module_base64;
 
+/// Base Metadata.
+/// It contains the name, short name, base, and padding of a base.
+pub struct BaseMetadata {
+    /// Name of the base.
+    pub name: &'static str,
+    /// Short name of the base.
+    pub short_name: &'static str,
+    /// Alphabet of the base.
+    pub base: &'static str,
+    /// Padding character of the base.
+    pub padding: Option<&'static str>,
+}
+
+/// Errors that can occur while decoding.
+#[derive(Debug, Error, Clone, PartialEq, Eq)]
+pub enum DecodeError {
+    /// An invalid byte was found in the input. The offset and offending byte are provided.
+    /// Padding characters (e.g. `=`) interspersed in the encoded form will be treated as invalid bytes.
+    #[error("Invalid byte at offset {0}: {1:#04x}")]
+    InvalidByte(usize, u8),
+    /// The length of the input is invalid.
+    #[error("Invalid length")]
+    InvalidLength,
+    /// The last non-padding input symbol's encoded 6 bits have nonzero bits that will be discarded.
+    /// This is indicative of corrupted or truncated Base64.
+    /// Unlike `InvalidByte`, which reports symbols that aren't in the alphabet, this error is for
+    /// symbols that are in the alphabet but represent nonsensical encodings.
+    #[error("")]
+    InvalidLastSymbol(usize, u8),
+    /// The nature of the padding was not as configured: absent or incorrect when it must be
+    /// canonical, or present when it must be absent, etc.
+    #[error("Invalid padding")]
+    InvalidPadding,
+}
+
+/// A base encoding/decoding module.
 pub trait Base {
-    fn get_name(&self) -> &'static str;
+    /// Get the metadata of the base.
+    fn get_metadata(&self) -> &'static BaseMetadata;
 
-    fn get_short_name(&self) -> &'static str;
+    /// Check if the encoded string looks like it is encoded with this base.
+    /// This function does not check if the decoded string is actually valid.
+    fn is_valid(&self, encoded: &str) -> bool {
+        let metadata = self.get_metadata();
+        let (base, padding) = (metadata.base, metadata.padding);
 
-    fn get_base(&self) -> &'static str;
-
-    fn get_padding(&self) -> Option<&'static str>;
-
-    fn can_be_decoded(&self, encoded: &str) -> bool {
         let mut is_padding = false;
 
         for c in encoded.chars() {
             if is_padding {
-                match self.get_padding() {
-                    Some(padding) => {
-                        if !padding.contains(c) {
-                            return false;
-                        }
-                    }
-                    None => {
-                        return false;
-                    }
+                if padding.map_or(false, |p| !p.contains(c)) {
+                    return false;
                 }
-            } else {
-                if !self.get_base().contains(c) {
-                    match self.get_padding() {
-                        Some(padding) => {
-                            if padding.contains(c) {
-                                is_padding = true;
-                            } else {
-                                return false;
-                            }
-                        }
-                        None => {
-                            return false;
-                        }
-                    }
+            } else if !base.contains(c) {
+                if padding.map_or(false, |p| p.contains(c)) {
+                    is_padding = true;
+                } else {
+                    return false;
                 }
             }
         }
         true
     }
 
-    fn encode(&self, decoded: &str) -> Result<String, String>;
+    /// Encode a string.
+    fn encode(&self, plain: &str) -> String;
 
-    fn decode(&self, encoded: &str) -> Result<String, String>;
+    /// Decode a string.
+    fn decode(&self, enc: &str) -> Result<String, DecodeError>;
 }
 
+/// Get a list of all defined bases.
 pub fn get_bases() -> Vec<Box<dyn Base>> {
-    let bases: Vec<Box<dyn Base>> = vec![
-        Box::new(module_base2::Base2),
-        Box::new(module_base2_7bytes::Base2_7bytes),
-        Box::new(module_base2_9bytes::Base2_9bytes),
-        Box::new(module_base2_10bytes::Base2_10bytes),
-        Box::new(module_base10::Base10),
-        Box::new(module_hex::Hex),
-        Box::new(module_base32::Base32),
-        Box::new(module_base36::Base36),
-        Box::new(module_base58::Base58),
-        Box::new(module_base62::Base62),
-        Box::new(module_base64::Base64),
-        Box::new(module_base85::Base85),
-    ];
-    bases
+    vec![Box::new(module_base64::Base64)]
 }
 
+/// Get a list of all defined bases' names and short names.
 pub fn get_bases_names() -> Vec<(String, String)> {
-    let mut names = Vec::new();
-    for base in get_bases() {
-        names.push((
-            base.get_short_name().to_string(),
-            base.get_name().to_string(),
-        ));
-    }
-    names
+    get_bases()
+        .into_iter()
+        .map(|base| {
+            (
+                base.get_metadata().name.to_string(),
+                base.get_metadata().short_name.to_string(),
+            )
+        })
+        .collect()
 }
 
-pub fn get_base_from_name(name: &str) -> Result<Box<dyn Base>, String> {
-    for base in get_bases() {
-        if base.get_name() == name || base.get_short_name() == name {
-            return Ok(base);
-        }
-    }
-    Err(format!("Base {} not found", name))
+/// Errors that can occur while getting a base.
+#[derive(Debug, Error, Clone, PartialEq, Eq)]
+pub enum BaseError {
+    /// The base was not found.
+    #[error("Base not found: {0}")]
+    NotFound(String),
 }
 
-pub fn get_bases_from_names(names: &Vec<String>) -> Result<Vec<Box<dyn Base>>, String> {
-    let mut bases = Vec::new();
-    for name in names {
-        match get_base_from_name(name) {
-            Ok(base) => {
-                bases.push(base);
-            }
-            Err(e) => {
-                return Err(e);
-            }
-        }
-    }
-    Ok(bases)
+/// Get a base from its name or short name.
+pub fn get_base_from_name(name: &str) -> Result<Box<dyn Base>, BaseError> {
+    get_bases()
+        .into_iter()
+        .find(|base| base.get_metadata().name == name || base.get_metadata().short_name == name)
+        .ok_or_else(|| BaseError::NotFound(name.to_string()))
 }
 
-pub fn encode_decimal(decoded: &str, base: &str, block_size: usize) -> Result<String, String> {
-    let n = utils::str_to_int(decoded, 256);
-    let encoded = utils::to_base(&n, base, block_size);
-    Ok(encoded)
-}
-
-pub fn decode_decimal(encoded: &str, base: &str) -> Result<String, String> {
-    let n = utils::from_base(&encoded, base)?;
-    let decoded = utils::int_to_str(&n, 256);
-    Ok(decoded.to_string())
-}
-
-pub fn encode_abstract(
-    decoded: &str,
-    base: &str,
-    padding: &str,
-    in_block_size: usize,
-    out_block_size: usize,
-) -> Result<String, String> {
-    let encoded_base2 = module_base2::Base2.encode(decoded)?;
-    let chunks = encoded_base2.as_str().packed_by(in_block_size);
-    let mut encoded = String::new();
-
-    for chunk in chunks {
-        let chunk_value = from_base(chunk.as_str(), "01")?.to_usize().unwrap();
-
-        if chunk.len() == in_block_size {
-            encoded.push(base.chars().nth(chunk_value).unwrap());
-        } else if chunk.len() < in_block_size {
-            let chunk_value = chunk_value << (in_block_size - chunk.len());
-            encoded.push(base.chars().nth(chunk_value).unwrap());
-
-            let padding_len = out_block_size - encoded.len() % out_block_size;
-            for _ in 0..padding_len {
-                encoded.push_str(padding);
-            }
-        }
-    }
-    Ok(encoded)
+/// Get a list of bases from a list of names or short names.
+pub fn get_bases_from_names(names: &Vec<String>) -> Result<Vec<Box<dyn Base>>, BaseError> {
+    names.iter().map(|name| get_base_from_name(name)).collect()
 }
 
 #[cfg(test)]
 #[cfg(not(tarpaulin_include))]
 mod tests {
     use super::*;
-    use crate::modules::{module_base2::Base2, module_base64::Base64};
+    use crate::modules::module_base64::Base64;
 
     #[test]
-    fn test_can_be_decoded_0() {
-        let base = Base2;
-        assert!(base.can_be_decoded(&String::from("01001000")));
-    }
-
-    #[test]
-    fn test_can_be_decoded_1() {
-        let base = Base2;
-        assert!(!base.can_be_decoded(&String::from("01001002")));
-    }
-
-    #[test]
-    fn test_can_be_decoded_2() {
+    fn test_base64_is_valid() {
         let base = Base64;
-        assert!(base.can_be_decoded(&String::from("aGVsbG8gd29ybGQ=")));
+        assert!(base.is_valid(&String::from("YWJj")));
+        assert!(base.is_valid(&String::from("aGVsbG8gd29ybGQ=")));
     }
 
     #[test]
-    fn test_can_be_decoded_3() {
+    fn test_base64_is_not_valid() {
         let base = Base64;
-        assert!(base.can_be_decoded(&String::from("YWJj")));
-    }
-
-    #[test]
-    fn test_can_be_decoded_4() {
-        let base = Base64;
-        assert!(!base.can_be_decoded(&String::from("aGVsbG8gd29ybGQ=a")));
-    }
-
-    #[test]
-    fn test_can_be_decoded_5() {
-        let base = Base64;
-        assert!(!base.can_be_decoded(&String::from("aGVsbG8gd29!ybGQ=")));
-    }
-
-    #[test]
-    fn test_can_be_decoded_6() {
-        let base = Base64;
-        assert!(!base.can_be_decoded(&String::from("YW%Jj")));
+        assert!(!base.is_valid(&String::from("YW%Jj")));
+        assert!(!base.is_valid(&String::from("aGVsbG8gd29!ybGQ=")));
+        assert!(!base.is_valid(&String::from("aGVsbG8gd29ybGQ=a")));
     }
 }
