@@ -64,7 +64,7 @@ pub fn crack(
         base_name: "",
         base_short_name: "",
         decoded: ciphertext.to_string(),
-        printable_percentage: utils::printable_percentage(&ciphertext),
+        printable_percentage: utils::printable_percentage(ciphertext),
     });
 
     crack_round(ciphertext, bases, min_printable_percentage, tree.root_mut());

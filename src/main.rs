@@ -64,7 +64,7 @@ impl std::str::FromStr for Bases {
     fn from_str(bases: &str) -> Result<Self, Self::Err> {
         let bases = bases
             // Split by comma
-            .split(",")
+            .split(',')
             .map(|base| base.to_string())
             .collect::<Vec<String>>()
             // Split by space
@@ -102,8 +102,7 @@ impl std::str::FromStr for Bases {
 /// If argument is a file, read it and return its content, else return the argument as is
 fn read_file_or_arg(arg: String) -> String {
     if Path::new(&arg).exists() {
-        let content = std::fs::read_to_string(arg).unwrap();
-        content
+        std::fs::read_to_string(arg).unwrap()
     } else {
         arg
     }

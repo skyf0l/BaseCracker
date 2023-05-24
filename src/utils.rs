@@ -1,5 +1,5 @@
 pub fn printable_percentage(s: &str) -> f32 {
-    if s.len() == 0 {
+    if s.is_empty() {
         return 0.0;
     }
     let mut sum = 0.0;
@@ -27,7 +27,7 @@ mod test {
         ];
 
         for test in TESTLIST.iter() {
-            let printable_percentage = printable_percentage(&test.0);
+            let printable_percentage = printable_percentage(test.0);
             assert_eq!(
                 printable_percentage, test.1,
                 "For string {}: Expected {} but got {}",
