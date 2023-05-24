@@ -61,6 +61,7 @@ struct Bases(Vec<String>);
 impl std::str::FromStr for Bases {
     type Err = String;
 
+    #[cfg(not(tarpaulin_include))]
     fn from_str(bases: &str) -> Result<Self, Self::Err> {
         let bases = bases
             // Split by comma
@@ -100,6 +101,7 @@ impl std::str::FromStr for Bases {
 }
 
 /// If argument is a file, read it and return its content, else return the argument as is
+#[cfg(not(tarpaulin_include))]
 fn read_file_or_arg(arg: String) -> String {
     if Path::new(&arg).exists() {
         std::fs::read_to_string(arg).unwrap()
@@ -116,6 +118,7 @@ enum Error {
     BaseError(#[from] BaseError),
 }
 
+#[cfg(not(tarpaulin_include))]
 fn display_result(result: Vec<String>, options: &Options) {
     if options.no_newline {
         print!("{}", result.last().unwrap());
