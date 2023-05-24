@@ -18,10 +18,10 @@ struct Args {
 #[derive(Parser, Debug, Clone)]
 struct Options {
     /// Quiet mode (only print the result)
-    #[clap(short, long)]
+    #[clap(short, long, conflicts_with = "verbose")]
     quiet: bool,
     /// Verbose mode
-    #[clap(short, long)]
+    #[clap(short, long, conflicts_with = "quiet")]
     verbose: bool,
     /// Minimum printable percentage to consider a result valid
     #[clap(short, long, default_value = "0.9")]
@@ -127,6 +127,8 @@ fn display_result(result: Vec<String>, options: &Options) {
 
 #[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
+    use basecracker::crack;
+
     let args = Args::parse();
 
     match args.subcommand {
@@ -145,9 +147,14 @@ fn main() -> Result<(), MainError> {
             display_result(result, &args.options);
         }
         SubCommand::Crack { ciphertext } => {
-            let _ciphertext = read_file_or_arg(ciphertext);
+            let ciphertext = read_file_or_arg(ciphertext);
 
-            todo!();
+            let result = crack(
+                &ciphertext,
+                &basecracker::get_bases(),
+                args.options.min_printable_percentage,
+            );
+            println!("{:?}", result);
         }
     }
 
