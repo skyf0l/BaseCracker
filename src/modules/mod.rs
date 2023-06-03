@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 mod module_base64;
+mod module_base85;
 
 /// Base Metadata.
 /// It contains the name, short name, base, and padding of a base.
@@ -25,16 +26,13 @@ pub enum DecodeError {
     /// The length of the input is invalid.
     #[error("Invalid length")]
     InvalidLength,
-    /// The last non-padding input symbol's encoded 6 bits have nonzero bits that will be discarded.
-    /// This is indicative of corrupted or truncated Base64.
-    /// Unlike `InvalidByte`, which reports symbols that aren't in the alphabet, this error is for
-    /// symbols that are in the alphabet but represent nonsensical encodings.
-    #[error("")]
-    InvalidLastSymbol(usize, u8),
     /// The nature of the padding was not as configured: absent or incorrect when it must be
     /// canonical, or present when it must be absent, etc.
     #[error("Invalid padding")]
     InvalidPadding,
+    /// Unknown error
+    #[error("Unknown error")]
+    UnknownError,
 }
 
 /// A base encoding/decoding module.
@@ -75,7 +73,10 @@ pub trait Base {
 
 /// Get a list of all defined bases.
 pub fn get_bases() -> Vec<Box<dyn Base>> {
-    vec![Box::new(module_base64::Base64)]
+    vec![
+        Box::new(module_base64::Base64),
+        Box::new(module_base85::Base85),
+    ]
 }
 
 /// Get a list of all defined bases' names and short names.

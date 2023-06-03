@@ -21,3 +21,4 @@ clap = { version = "4", features = ["derive", "env"] }
 main_error = "0.1"
 iterator-ext = "0.2"
 base64 = "0.21"
+base85 = "1"
