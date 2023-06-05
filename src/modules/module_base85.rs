@@ -1,5 +1,3 @@
-use base85;
-
 /// Base85 module.
 pub struct Base85;
 
