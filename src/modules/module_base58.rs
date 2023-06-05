@@ -9,9 +9,9 @@ impl Base for Base58 {
     fn get_metadata(&self) -> &'static BaseMetadata {
         &BaseMetadata {
             name: "base58",
-            short_name: "b64",
+            short_name: "b58",
             base: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-            padding: Some("="),
+            padding: None,
         }
     }
 
