@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 mod module_base58;
+mod module_base62;
 mod module_base64;
 mod module_base85;
 
@@ -76,6 +77,7 @@ pub trait Base {
 pub fn get_bases() -> Vec<Box<dyn Base>> {
     vec![
         Box::new(module_base58::Base58),
+        Box::new(module_base62::Base62),
         Box::new(module_base64::Base64),
         Box::new(module_base85::Base85),
     ]
