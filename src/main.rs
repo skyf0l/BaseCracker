@@ -17,7 +17,7 @@ struct Args {
 /// Options.
 #[derive(Parser, Debug, Clone)]
 struct Options {
-    /// Quiet mode (only print the result)
+    /// Quiet mode, don't print anything except results
     #[clap(short, long, conflicts_with = "verbose")]
     quiet: bool,
     /// Verbose mode
