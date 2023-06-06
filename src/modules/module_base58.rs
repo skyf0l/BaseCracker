@@ -15,19 +15,17 @@ impl Base for Base58 {
         }
     }
 
-    fn encode(&self, plain: &str) -> String {
-        plain.as_bytes().to_base58()
+    fn encode(&self, plain: &[u8]) -> String {
+        plain.to_base58()
     }
 
-    fn decode(&self, enc: &str) -> Result<String, DecodeError> {
-        enc.from_base58()
-            .map(|v| String::from_utf8(v).unwrap())
-            .map_err(|e| match e {
-                base58::FromBase58Error::InvalidBase58Character(c, n) => {
-                    DecodeError::InvalidByte(n, c as u8)
-                }
-                base58::FromBase58Error::InvalidBase58Length => DecodeError::InvalidLength,
-            })
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError> {
+        enc.from_base58().map_err(|e| match e {
+            base58::FromBase58Error::InvalidBase58Character(c, n) => {
+                DecodeError::InvalidByte(n, c as u8)
+            }
+            base58::FromBase58Error::InvalidBase58Length => DecodeError::InvalidLength,
+        })
     }
 }
 
@@ -41,30 +39,32 @@ mod tests {
     fn test_encode_decode() {
         let base = Base58;
 
-        const TESTLIST: [(&str, &str); 10] = [
-            ("Hello World!", "2NEpo7TZRRrLZSi2U"),
-            ("BaseCracker", "HTivuUbjqtbbaC1"),
-            ("\x7fELF", "4Fghph"),
-            ("", ""),
-            ("a", "2g"),
-            ("aa", "8Qp"),
-            ("aaa", "Zi88"),
-            ("aaaa", "3VNWTa"),
-            ("aaaaa", "BzDw2JL"),
-            ("aaaaaa", "qVa5SjWY"),
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "2NEpo7TZRRrLZSi2U"),
+            (b"BaseCracker", "HTivuUbjqtbbaC1"),
+            (b"\x7fELF", "4Fghph"),
+            (b"", ""),
+            (b"a", "2g"),
+            (b"aa", "8Qp"),
+            (b"aaa", "Zi88"),
+            (b"aaaa", "3VNWTa"),
+            (b"aaaaa", "BzDw2JL"),
+            (b"aaaaaa", "qVa5SjWY"),
         ];
 
         for (plaintext, ciphertext) in TESTLIST.iter() {
             assert_eq!(
                 base.encode(plaintext),
                 *ciphertext,
-                "Encoding \"{plaintext}\" failed"
+                "Encoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
 
             assert_eq!(
                 base.decode(ciphertext).unwrap(),
                 *plaintext,
-                "Decoding \"{plaintext}\" failed"
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
         }
     }

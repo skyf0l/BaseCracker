@@ -13,14 +13,12 @@ impl Base for Base85 {
         }
     }
 
-    fn encode(&self, plain: &str) -> String {
-        base85::encode(plain.as_bytes())
+    fn encode(&self, plain: &[u8]) -> String {
+        base85::encode(plain)
     }
 
-    fn decode(&self, enc: &str) -> Result<String, DecodeError> {
-        base85::decode(enc)
-            .map(|v| String::from_utf8(v).unwrap())
-            .ok_or(DecodeError::Error)
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError> {
+        base85::decode(enc).ok_or(DecodeError::Error)
     }
 }
 
@@ -34,30 +32,32 @@ mod tests {
     fn test_encode_decode() {
         let base = Base85;
 
-        const TESTLIST: [(&str, &str); 10] = [
-            ("Hello World!", "NM&qnZy;B1a%^NF"),
-            ("BaseCracker", "LSb`dLvmqbYh`i"),
-            ("\x7fELF", "e??42"),
-            ("", ""),
-            ("a", "VE"),
-            ("aa", "VPO"),
-            ("aaa", "VPRn"),
-            ("aaaa", "VPRom"),
-            ("aaaaa", "VPRomVE"),
-            ("aaaaaa", "VPRomVPO"),
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "NM&qnZy;B1a%^NF"),
+            (b"BaseCracker", "LSb`dLvmqbYh`i"),
+            (b"\x7fELF", "e??42"),
+            (b"", ""),
+            (b"a", "VE"),
+            (b"aa", "VPO"),
+            (b"aaa", "VPRn"),
+            (b"aaaa", "VPRom"),
+            (b"aaaaa", "VPRomVE"),
+            (b"aaaaaa", "VPRomVPO"),
         ];
 
         for (plaintext, ciphertext) in TESTLIST.iter() {
             assert_eq!(
                 base.encode(plaintext),
                 *ciphertext,
-                "Encoding \"{plaintext}\" failed"
+                "Encoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
 
             assert_eq!(
                 base.decode(ciphertext).unwrap(),
                 *plaintext,
-                "Decoding \"{plaintext}\" failed"
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
         }
     }

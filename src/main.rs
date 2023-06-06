@@ -1,8 +1,9 @@
 use clap::{command, Parser, Subcommand};
 use main_error::MainError;
 use std::path::Path;
+use std::{io, io::Write};
 
-use basecracker::{decode, encode, BaseError, DecodeError};
+use basecracker::{crack, decode, encode, BaseError, DecodeError};
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
@@ -125,18 +126,7 @@ enum Error {
 }
 
 #[cfg(not(tarpaulin_include))]
-fn display_result(result: Vec<String>, options: &Options) {
-    if options.no_newline {
-        print!("{}", result.last().unwrap());
-    } else {
-        println!("{}", result.last().unwrap());
-    }
-}
-
-#[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
-    use basecracker::crack;
-
     let args = Args::parse();
 
     match args.subcommand {
@@ -152,7 +142,13 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = encode(&plaintext, &bases);
-            display_result(result, &args.options);
+
+            // Display result
+            if args.options.no_newline {
+                print!("{}", result.last().unwrap());
+            } else {
+                println!("{}", result.last().unwrap());
+            }
         }
         SubCommand::Decode {
             ciphertext,
@@ -166,7 +162,14 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = decode(&ciphertext, &bases)?;
-            display_result(result, &args.options);
+
+            // Display result
+            if args.options.no_newline {
+                io::stdout().write(result.last().unwrap())?;
+            } else {
+                io::stdout().write(result.last().unwrap())?;
+                println!();
+            }
         }
         SubCommand::Crack { ciphertext } => {
             let ciphertext = read_file_or_arg(ciphertext);

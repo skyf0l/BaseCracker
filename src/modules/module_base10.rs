@@ -15,14 +15,12 @@ impl Base for Base10 {
         }
     }
 
-    fn encode(&self, plain: &str) -> String {
-        base_x::encode(ALPHABET, plain.as_bytes())
+    fn encode(&self, plain: &[u8]) -> String {
+        base_x::encode(ALPHABET, plain)
     }
 
-    fn decode(&self, enc: &str) -> Result<String, DecodeError> {
-        base_x::decode(ALPHABET, enc)
-            .map(|v| String::from_utf8(v).unwrap())
-            .map_err(|_| DecodeError::Error)
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError> {
+        base_x::decode(ALPHABET, enc).map_err(|_| DecodeError::Error)
     }
 }
 
@@ -36,30 +34,32 @@ mod tests {
     fn test_encode_decode() {
         let base = Base10;
 
-        const TESTLIST: [(&str, &str); 10] = [
-            ("Hello World!", "22405534230753928650781647905"),
-            ("BaseCracker", "80249302315773941590484338"),
-            ("\x7fELF", "2135247942"),
-            ("", ""),
-            ("a", "97"),
-            ("aa", "24929"),
-            ("aaa", "6381921"),
-            ("aaaa", "1633771873"),
-            ("aaaaa", "418245599585"),
-            ("aaaaaa", "107070873493857"),
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "22405534230753928650781647905"),
+            (b"BaseCracker", "80249302315773941590484338"),
+            (b"\x7fELF", "2135247942"),
+            (b"", ""),
+            (b"a", "97"),
+            (b"aa", "24929"),
+            (b"aaa", "6381921"),
+            (b"aaaa", "1633771873"),
+            (b"aaaaa", "418245599585"),
+            (b"aaaaaa", "107070873493857"),
         ];
 
         for (plaintext, ciphertext) in TESTLIST.iter() {
             assert_eq!(
                 base.encode(plaintext),
                 *ciphertext,
-                "Encoding \"{plaintext}\" failed"
+                "Encoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
 
             assert_eq!(
                 base.decode(ciphertext).unwrap(),
                 *plaintext,
-                "Decoding \"{plaintext}\" failed"
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
         }
     }

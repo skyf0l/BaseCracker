@@ -17,7 +17,7 @@ pub fn encode(plaintext: &str, bases: &[Box<dyn Base>]) -> Vec<String> {
     bases
         .iter()
         .scan(plaintext.to_string(), |text, base| {
-            let encoded = base.encode(text);
+            let encoded = base.encode(text.as_bytes());
             *text = encoded.clone();
             Some(encoded)
         })
@@ -26,12 +26,14 @@ pub fn encode(plaintext: &str, bases: &[Box<dyn Base>]) -> Vec<String> {
 
 /// Decodes the given ciphertext using the specified bases and return the result as a vector of steps.
 /// E.g. (ciphertext, step1, step2, ..., plaintext)
-pub fn decode(ciphertext: &str, bases: &[Box<dyn Base>]) -> Result<Vec<String>, DecodeError> {
+pub fn decode(ciphertext: &str, bases: &[Box<dyn Base>]) -> Result<Vec<Vec<u8>>, DecodeError> {
     bases
         .iter()
         .map(Ok)
-        .try_scan(ciphertext.to_string(), |acc, base| {
-            let decoded = base.decode(acc)?;
+        .try_scan(ciphertext.as_bytes().to_vec(), |acc, base| {
+            let decoded = base.decode(
+                &String::from_utf8(acc.to_vec()).map_err(|e| DecodeError::InvalidUtf8(e))?,
+            )?;
             *acc = decoded.clone();
             Ok(Some(decoded))
         })
@@ -45,8 +47,8 @@ pub struct CrackData {
     pub base_name: &'static str,
     /// The short name of the base used to decode the ciphertext.
     pub base_short_name: &'static str,
-    /// The decoded text.
-    pub decoded: String,
+    /// The decoded data.
+    pub decoded: Vec<u8>,
     /// The percentage of printable characters in the decoded text.
     pub printable_percentage: f32,
 }
@@ -63,8 +65,8 @@ pub fn crack(
     let mut tree = CrackTree::new(CrackData {
         base_name: "",
         base_short_name: "",
-        decoded: ciphertext.to_string(),
-        printable_percentage: utils::printable_percentage(ciphertext),
+        decoded: ciphertext.as_bytes().to_vec(),
+        printable_percentage: utils::printable_percentage(ciphertext.as_bytes()),
     });
 
     crack_round(ciphertext, bases, min_printable_percentage, tree.root_mut());
@@ -96,7 +98,12 @@ pub fn crack_round(
             };
 
             let child = node.add_child(data);
-            crack_round(&decoded, bases, min_printable_percentage, child);
+            crack_round(
+                &String::from_utf8(decoded).unwrap(),
+                bases,
+                min_printable_percentage,
+                child,
+            );
         }
     }
 }

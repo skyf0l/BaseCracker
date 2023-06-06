@@ -1,3 +1,5 @@
+use std::string::FromUtf8Error;
+
 use thiserror::Error;
 
 mod module_base10;
@@ -37,6 +39,9 @@ pub enum DecodeError {
     /// canonical, or present when it must be absent, etc.
     #[error("Invalid padding")]
     InvalidPadding,
+    /// The encoded string is not a valid UTF-8 string.
+    #[error("Invalid UTF-8")]
+    InvalidUtf8(#[from] FromUtf8Error),
     /// Generic error.
     #[error("Can not decode the provided data")]
     Error,
@@ -72,10 +77,10 @@ pub trait Base {
     }
 
     /// Encode a string.
-    fn encode(&self, plain: &str) -> String;
+    fn encode(&self, plain: &[u8]) -> String;
 
     /// Decode a string.
-    fn decode(&self, enc: &str) -> Result<String, DecodeError>;
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError>;
 }
 
 /// Get a list of all defined bases.

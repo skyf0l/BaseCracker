@@ -15,20 +15,17 @@ impl Base for Base64 {
         }
     }
 
-    fn encode(&self, plain: &str) -> String {
+    fn encode(&self, plain: &[u8]) -> String {
         general_purpose::STANDARD.encode(plain)
     }
 
-    fn decode(&self, enc: &str) -> Result<String, DecodeError> {
-        general_purpose::STANDARD
-            .decode(enc)
-            .map(|v| String::from_utf8(v).unwrap())
-            .map_err(|e| match e {
-                base64::DecodeError::InvalidByte(n, c) => DecodeError::InvalidByte(n, c),
-                base64::DecodeError::InvalidLength => DecodeError::InvalidLength,
-                base64::DecodeError::InvalidLastSymbol(_, _) => DecodeError::Error,
-                base64::DecodeError::InvalidPadding => DecodeError::InvalidPadding,
-            })
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError> {
+        general_purpose::STANDARD.decode(enc).map_err(|e| match e {
+            base64::DecodeError::InvalidByte(n, c) => DecodeError::InvalidByte(n, c),
+            base64::DecodeError::InvalidLength => DecodeError::InvalidLength,
+            base64::DecodeError::InvalidLastSymbol(_, _) => DecodeError::Error,
+            base64::DecodeError::InvalidPadding => DecodeError::InvalidPadding,
+        })
     }
 }
 
@@ -42,30 +39,32 @@ mod tests {
     fn test_encode_decode() {
         let base = Base64;
 
-        const TESTLIST: [(&str, &str); 10] = [
-            ("Hello World!", "SGVsbG8gV29ybGQh"),
-            ("BaseCracker", "QmFzZUNyYWNrZXI="),
-            ("\x7fELF", "f0VMRg=="),
-            ("", ""),
-            ("a", "YQ=="),
-            ("aa", "YWE="),
-            ("aaa", "YWFh"),
-            ("aaaa", "YWFhYQ=="),
-            ("aaaaa", "YWFhYWE="),
-            ("aaaaaa", "YWFhYWFh"),
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "SGVsbG8gV29ybGQh"),
+            (b"BaseCracker", "QmFzZUNyYWNrZXI="),
+            (b"\x7fELF", "f0VMRg=="),
+            (b"", ""),
+            (b"a", "YQ=="),
+            (b"aa", "YWE="),
+            (b"aaa", "YWFh"),
+            (b"aaaa", "YWFhYQ=="),
+            (b"aaaaa", "YWFhYWE="),
+            (b"aaaaaa", "YWFhYWFh"),
         ];
 
         for (plaintext, ciphertext) in TESTLIST.iter() {
             assert_eq!(
                 base.encode(plaintext),
                 *ciphertext,
-                "Encoding \"{plaintext}\" failed"
+                "Encoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
 
             assert_eq!(
                 base.decode(ciphertext).unwrap(),
                 *plaintext,
-                "Decoding \"{plaintext}\" failed"
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
             );
         }
     }
