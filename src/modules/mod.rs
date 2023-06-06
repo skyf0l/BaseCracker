@@ -8,6 +8,7 @@ mod module_base58;
 mod module_base62;
 mod module_base64;
 mod module_base85;
+mod module_hex;
 
 /// Base Metadata.
 /// It contains the name, short name, base, and padding of a base.
@@ -82,6 +83,7 @@ pub fn get_bases() -> Vec<Box<dyn Base>> {
     vec![
         Box::new(module_base2::Base2),
         Box::new(module_base10::Base10),
+        Box::new(module_hex::Hex),
         Box::new(module_base32::Base32),
         Box::new(module_base36::Base36),
         Box::new(module_base58::Base58),
