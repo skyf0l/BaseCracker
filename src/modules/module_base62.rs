@@ -23,7 +23,7 @@ impl Base for Base62 {
         }
         bs62::decode_data_forgiving(enc)
             .map(|v| String::from_utf8(v).unwrap())
-            .map_err(|_| DecodeError::UnknownError)
+            .map_err(|_| DecodeError::Error)
     }
 }
 

@@ -20,7 +20,7 @@ impl Base for Base85 {
     fn decode(&self, enc: &str) -> Result<String, DecodeError> {
         base85::decode(enc)
             .map(|v| String::from_utf8(v).unwrap())
-            .ok_or(DecodeError::UnknownError)
+            .ok_or(DecodeError::Error)
     }
 }
 

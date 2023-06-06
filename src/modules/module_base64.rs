@@ -26,7 +26,7 @@ impl Base for Base64 {
             .map_err(|e| match e {
                 base64::DecodeError::InvalidByte(n, c) => DecodeError::InvalidByte(n, c),
                 base64::DecodeError::InvalidLength => DecodeError::InvalidLength,
-                base64::DecodeError::InvalidLastSymbol(_, _) => DecodeError::UnknownError,
+                base64::DecodeError::InvalidLastSymbol(_, _) => DecodeError::Error,
                 base64::DecodeError::InvalidPadding => DecodeError::InvalidPadding,
             })
     }
