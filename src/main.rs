@@ -165,9 +165,9 @@ fn main() -> Result<(), MainError> {
 
             // Display result
             if args.options.no_newline {
-                io::stdout().write(result.last().unwrap())?;
+                io::stdout().write_all(result.last().unwrap())?;
             } else {
-                io::stdout().write(result.last().unwrap())?;
+                io::stdout().write_all(result.last().unwrap())?;
                 println!();
             }
         }

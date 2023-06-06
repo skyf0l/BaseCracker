@@ -28,7 +28,7 @@ impl Base for Base2 {
             .collect::<Vec<char>>()
             .chunks(8)
             .map(|chunk| {
-                let byte_str: String = chunk.into_iter().collect();
+                let byte_str: String = chunk.iter().collect();
                 u8::from_str_radix(&byte_str, 2).map_err(|_| DecodeError::Error)
             })
             .collect::<Result<Vec<u8>, DecodeError>>()

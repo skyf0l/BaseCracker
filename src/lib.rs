@@ -31,9 +31,8 @@ pub fn decode(ciphertext: &str, bases: &[Box<dyn Base>]) -> Result<Vec<Vec<u8>>,
         .iter()
         .map(Ok)
         .try_scan(ciphertext.as_bytes().to_vec(), |acc, base| {
-            let decoded = base.decode(
-                &String::from_utf8(acc.to_vec()).map_err(|e| DecodeError::InvalidUtf8(e))?,
-            )?;
+            let decoded =
+                base.decode(&String::from_utf8(acc.to_vec()).map_err(DecodeError::InvalidUtf8)?)?;
             *acc = decoded.clone();
             Ok(Some(decoded))
         })
