@@ -40,6 +40,9 @@ enum SubCommand {
         plaintext: String,
         /// The bases to use (can be separated by comma or space)
         bases: Bases,
+        /// Reverse the order of the bases
+        #[clap(short, long)]
+        reverse: bool,
     },
     /// Decode given cipher/file using the specified bases
     Decode {
@@ -47,6 +50,9 @@ enum SubCommand {
         ciphertext: String,
         /// The bases to use (can be separated by comma or space)
         bases: Bases,
+        /// Reverse the order of the bases
+        #[clap(short, long)]
+        reverse: bool,
     },
     /// Crack given cipher/file
     Crack {
@@ -134,16 +140,30 @@ fn main() -> Result<(), MainError> {
     let args = Args::parse();
 
     match args.subcommand {
-        SubCommand::Encode { plaintext, bases } => {
+        SubCommand::Encode {
+            plaintext,
+            bases,
+            reverse,
+        } => {
             let plaintext = read_file_or_arg(plaintext);
-            let bases = basecracker::get_bases_from_names(&bases.0)?;
+            let mut bases = basecracker::get_bases_from_names(&bases.0)?;
+            if reverse {
+                bases.reverse();
+            }
 
             let result = encode(&plaintext, &bases);
             display_result(result, &args.options);
         }
-        SubCommand::Decode { ciphertext, bases } => {
+        SubCommand::Decode {
+            ciphertext,
+            bases,
+            reverse,
+        } => {
             let ciphertext = read_file_or_arg(ciphertext);
-            let bases = basecracker::get_bases_from_names(&bases.0)?;
+            let mut bases = basecracker::get_bases_from_names(&bases.0)?;
+            if reverse {
+                bases.reverse();
+            }
 
             let result = decode(&ciphertext, &bases)?;
             display_result(result, &args.options);
