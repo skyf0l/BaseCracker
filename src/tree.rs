@@ -66,7 +66,7 @@ impl<T> Node<T> {
         Rc::new(RefCell::new(Self {
             children: Vec::new(),
             parent: None,
-            data: data,
+            data,
         }))
     }
 
@@ -75,7 +75,7 @@ impl<T> Node<T> {
         Rc::new(RefCell::new(Self {
             children: Vec::new(),
             parent: Some(parent),
-            data: data,
+            data,
         }))
     }
 }
@@ -90,7 +90,7 @@ pub fn add_child<T>(node: &RefNode<T>, data: T) -> RefNode<T> {
 /// Get leaves of the tree.
 fn node_leaves<T>(node: &RefNode<T>, leaves: &mut Vec<RefNode<T>>) {
     if node.borrow().children.is_empty() {
-        leaves.push(Rc::clone(&node));
+        leaves.push(Rc::clone(node));
     } else {
         for child in &node.borrow().children {
             node_leaves(child, leaves);
