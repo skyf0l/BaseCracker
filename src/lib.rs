@@ -3,6 +3,7 @@
 #![warn(missing_docs)]
 
 use iterator_ext::IteratorExt;
+use std::fmt;
 
 mod modules;
 pub use modules::*;
@@ -40,7 +41,7 @@ pub fn decode(ciphertext: &str, bases: &[Box<dyn Base>]) -> Result<Vec<Vec<u8>>,
 }
 
 /// Crack data.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct CrackData {
     /// The base used to decode the ciphertext.
     pub base: Option<&'static BaseMetadata>,
@@ -48,6 +49,23 @@ pub struct CrackData {
     pub decoded: Vec<u8>,
     /// The percentage of printable characters in the decoded text.
     pub printable_percentage: f32,
+}
+
+impl fmt::Debug for CrackData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let decoded = String::from_utf8(self.decoded.clone());
+        f.debug_struct("CrackData")
+            .field("base", &self.base.map(|b| b.name).unwrap_or("unknown"))
+            .field(
+                "decoded",
+                if let Ok(decoded) = &decoded {
+                    decoded
+                } else {
+                    &self.decoded
+                },
+            )
+            .finish()
+    }
 }
 
 /// Crack tree.
