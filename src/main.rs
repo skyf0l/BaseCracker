@@ -3,7 +3,7 @@ use main_error::MainError;
 use std::path::Path;
 use std::{io, io::Write};
 
-use basecracker::{crack, decode, encode, BaseError, DecodeError};
+use basecracker::{crack, decode, encode, get_recipe, BaseError, DecodeError};
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
@@ -179,7 +179,30 @@ fn main() -> Result<(), MainError> {
                 &basecracker::get_bases(),
                 args.options.min_printable_percentage,
             );
-            println!("{:?}", result);
+            let leaves = result.leaves();
+
+            if leaves.is_empty() {
+                // No result found
+                eprintln!("Error: No result found");
+            } else if leaves.len() == 1 {
+                // One result found (no ambiguity)
+                let leaf = leaves[0].clone();
+                eprintln!("Recipe: {}", get_recipe(&leaf));
+                if args.options.no_newline {
+                    io::stdout().write_all(&leaf.borrow().data.decoded)?;
+                } else {
+                    io::stdout().write_all(&leaf.borrow().data.decoded)?;
+                    println!();
+                }
+            } else {
+                // Multiple results found
+                eprintln!("Warning: {} results found, you may want to use the --min-printable-percentage option", leaves.len());
+                for leaf in leaves {
+                    println!("Recipe: {}", get_recipe(&leaf));
+                    io::stdout().write_all(&leaf.borrow().data.decoded)?;
+                    println!();
+                }
+            }
         }
     }
 

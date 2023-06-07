@@ -22,14 +22,25 @@ impl<T> Tree<T> {
     pub fn root(&mut self) -> RefNode<T> {
         self.root.clone()
     }
+
+    /// Get leaves of the tree.
+    pub fn leaves(&self) -> Vec<RefNode<T>> {
+        let mut leaves = Vec::new();
+
+        // Ignore the root node.
+        for child in &self.root.borrow().children {
+            node_leaves(child, &mut leaves);
+        }
+        leaves
+    }
 }
 
 /// Node.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Node<T> {
-    children: Vec<RefNode<T>>,
-    parent: Option<RefNode<T>>,
-    data: Option<T>,
+    pub children: Vec<RefNode<T>>,
+    pub parent: Option<RefNode<T>>,
+    pub data: T,
 }
 
 impl<T> fmt::Debug for Node<T>
@@ -55,7 +66,7 @@ impl<T> Node<T> {
         Rc::new(RefCell::new(Self {
             children: Vec::new(),
             parent: None,
-            data: Some(data),
+            data: data,
         }))
     }
 
@@ -64,18 +75,8 @@ impl<T> Node<T> {
         Rc::new(RefCell::new(Self {
             children: Vec::new(),
             parent: Some(parent),
-            data: Some(data),
+            data: data,
         }))
-    }
-
-    /// Get the children nodes.
-    pub fn children(&self) -> &[RefNode<T>] {
-        &self.children
-    }
-
-    /// Get the data.
-    pub fn data(&self) -> Option<&T> {
-        self.data.as_ref()
     }
 }
 
@@ -84,4 +85,15 @@ pub fn add_child<T>(node: &RefNode<T>, data: T) -> RefNode<T> {
     let child = Node::new_with_parent(data, Rc::clone(node));
     node.borrow_mut().children.push(child.clone());
     child
+}
+
+/// Get leaves of the tree.
+fn node_leaves<T>(node: &RefNode<T>, leaves: &mut Vec<RefNode<T>>) {
+    if node.borrow().children.is_empty() {
+        leaves.push(Rc::clone(&node));
+    } else {
+        for child in &node.borrow().children {
+            node_leaves(child, leaves);
+        }
+    }
 }
