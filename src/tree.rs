@@ -39,7 +39,11 @@ where
     /// Remove the parent field from the debug output and avoid infinite recursion.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Node")
-            .field("children", &self.children)
+            // Remove `RefCell` from the debug output.
+            .field(
+                "children",
+                &self.children.iter().map(|c| c.borrow()).collect::<Vec<_>>(),
+            )
             .field("data", &self.data)
             .finish()
     }
