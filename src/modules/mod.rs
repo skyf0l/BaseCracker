@@ -14,6 +14,7 @@ mod module_hex;
 
 /// Base Metadata.
 /// It contains the name, short name, base, and padding of a base.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BaseMetadata {
     /// Name of the base.
     pub name: &'static str,

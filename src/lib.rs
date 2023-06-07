@@ -42,10 +42,8 @@ pub fn decode(ciphertext: &str, bases: &[Box<dyn Base>]) -> Result<Vec<Vec<u8>>,
 /// Crack data.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CrackData {
-    /// The base name used to decode the ciphertext.
-    pub base_name: &'static str,
-    /// The short name of the base used to decode the ciphertext.
-    pub base_short_name: &'static str,
+    /// The base used to decode the ciphertext.
+    pub base: Option<&'static BaseMetadata>,
     /// The decoded data.
     pub decoded: Vec<u8>,
     /// The percentage of printable characters in the decoded text.
@@ -62,8 +60,7 @@ pub fn crack(
     min_printable_percentage: f32,
 ) -> CrackTree {
     let mut tree = CrackTree::new(CrackData {
-        base_name: "",
-        base_short_name: "",
+        base: None,
         decoded: ciphertext.as_bytes().to_vec(),
         printable_percentage: utils::printable_percentage(ciphertext.as_bytes()),
     });
@@ -90,8 +87,7 @@ pub fn crack_round(
 
         if printable_percentage >= min_printable_percentage {
             let data = CrackData {
-                base_name: base.get_metadata().name,
-                base_short_name: base.get_metadata().short_name,
+                base: Some(base.get_metadata()),
                 decoded: decoded.clone(),
                 printable_percentage,
             };
