@@ -9,7 +9,7 @@ pub use modules::*;
 
 mod tree;
 mod utils;
-use tree::{Node, Tree};
+use tree::{RefNode, Tree};
 
 /// Encodes the given plaintext using the specified bases and return the result as a vector of steps.
 /// E.g. (plaintext, step1, step2, ..., ciphertext)
@@ -68,7 +68,7 @@ pub fn crack(
         printable_percentage: utils::printable_percentage(ciphertext.as_bytes()),
     });
 
-    crack_round(ciphertext, bases, min_printable_percentage, tree.root_mut());
+    crack_round(ciphertext, bases, min_printable_percentage, tree.root());
 
     tree
 }
@@ -78,7 +78,7 @@ pub fn crack_round(
     ciphertext: &str,
     bases: &[Box<dyn Base>],
     min_printable_percentage: f32,
-    node: &mut Node<CrackData>,
+    node: RefNode<CrackData>,
 ) {
     for base in bases {
         let decoded = match base.decode(ciphertext) {
@@ -96,7 +96,7 @@ pub fn crack_round(
                 printable_percentage,
             };
 
-            let child = node.add_child(data);
+            let child = tree::add_child(&node, data);
             crack_round(
                 &String::from_utf8(decoded).unwrap(),
                 bases,

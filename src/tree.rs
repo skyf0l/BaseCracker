@@ -1,7 +1,13 @@
+use std::fmt;
+use std::{cell::RefCell, rc::Rc};
+
+/// Reference to a node.
+pub type RefNode<T> = Rc<RefCell<Node<T>>>;
+
 /// Tree.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tree<T> {
-    root: Node<T>,
+    root: RefNode<T>,
 }
 
 impl<T> Tree<T> {
@@ -12,30 +18,54 @@ impl<T> Tree<T> {
         }
     }
 
-    /// Get the root node mutably.
-    pub fn root_mut(&mut self) -> &mut Node<T> {
-        &mut self.root
+    /// Get the root node.
+    pub fn root(&mut self) -> RefNode<T> {
+        self.root.clone()
     }
 }
 
-/// Crack node.
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// Node.
+#[derive(Clone, PartialEq, Eq)]
 pub struct Node<T> {
-    children: Vec<Node<T>>,
+    children: Vec<RefNode<T>>,
+    parent: Option<RefNode<T>>,
     data: Option<T>,
+}
+
+impl<T> fmt::Debug for Node<T>
+where
+    T: fmt::Debug,
+{
+    /// Remove the parent field from the debug output and avoid infinite recursion.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Node")
+            .field("children", &self.children)
+            .field("data", &self.data)
+            .finish()
+    }
 }
 
 impl<T> Node<T> {
     /// Create a new node.
-    pub fn new(data: T) -> Self {
-        Self {
+    pub fn new(data: T) -> RefNode<T> {
+        Rc::new(RefCell::new(Self {
             children: Vec::new(),
+            parent: None,
             data: Some(data),
-        }
+        }))
+    }
+
+    /// Create a new node with parent.
+    pub fn new_with_parent(data: T, parent: RefNode<T>) -> RefNode<T> {
+        Rc::new(RefCell::new(Self {
+            children: Vec::new(),
+            parent: Some(parent),
+            data: Some(data),
+        }))
     }
 
     /// Get the children nodes.
-    pub fn children(&self) -> &[Node<T>] {
+    pub fn children(&self) -> &[RefNode<T>] {
         &self.children
     }
 
@@ -43,14 +73,11 @@ impl<T> Node<T> {
     pub fn data(&self) -> Option<&T> {
         self.data.as_ref()
     }
+}
 
-    /// Add a child node.
-    pub fn add_child(&mut self, data: T) -> &mut Node<T> {
-        let child = Node {
-            children: Vec::new(),
-            data: Some(data),
-        };
-        self.children.push(child);
-        self.children.last_mut().unwrap()
-    }
+/// Add a child node.
+pub fn add_child<T>(node: &RefNode<T>, data: T) -> RefNode<T> {
+    let child = Node::new_with_parent(data, Rc::clone(node));
+    node.borrow_mut().children.push(child.clone());
+    child
 }
