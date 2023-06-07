@@ -185,7 +185,9 @@ fn main() -> Result<(), MainError> {
             } else if leaves.len() == 1 {
                 // One result found (no ambiguity)
                 let leaf = leaves[0].clone();
-                eprintln!("Recipe: {}", get_recipe(&leaf));
+                if !args.options.quiet {
+                    eprintln!("Recipe: {}", get_recipe(&leaf));
+                }
                 display_result(&leaf.borrow().data.decoded, &args.options)?;
             } else {
                 // Multiple results found
