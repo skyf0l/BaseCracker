@@ -93,12 +93,11 @@ pub fn crack_round(
             };
 
             let child = tree::add_child(&node, data);
-            crack_round(
-                &String::from_utf8(decoded).unwrap(),
-                bases,
-                min_printable_percentage,
-                child,
-            );
+
+            // Recurse if the decoded data is valid UTF-8
+            if let Ok(decoded) = String::from_utf8(decoded) {
+                crack_round(&decoded, bases, min_printable_percentage, child);
+            }
         }
     }
 }
