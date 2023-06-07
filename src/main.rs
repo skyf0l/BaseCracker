@@ -126,6 +126,17 @@ enum Error {
 }
 
 #[cfg(not(tarpaulin_include))]
+fn display_result(result: &[u8], options: &Options) -> std::io::Result<()> {
+    if options.no_newline {
+        io::stdout().write_all(result)?;
+    } else {
+        io::stdout().write_all(result)?;
+        io::stdout().write_all(b"\n")?;
+    }
+    Ok(())
+}
+
+#[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
     let args = Args::parse();
 
@@ -142,13 +153,7 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = encode(&plaintext, &bases);
-
-            // Display result
-            if args.options.no_newline {
-                print!("{}", result.last().unwrap());
-            } else {
-                println!("{}", result.last().unwrap());
-            }
+            display_result(result.last().unwrap().as_bytes(), &args.options)?;
         }
         SubCommand::Decode {
             ciphertext,
@@ -162,14 +167,7 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = decode(&ciphertext, &bases)?;
-
-            // Display result
-            if args.options.no_newline {
-                io::stdout().write_all(result.last().unwrap())?;
-            } else {
-                io::stdout().write_all(result.last().unwrap())?;
-                println!();
-            }
+            display_result(result.last().unwrap(), &args.options)?;
         }
         SubCommand::Crack { ciphertext } => {
             let ciphertext = read_file_or_arg(ciphertext);
@@ -188,12 +186,7 @@ fn main() -> Result<(), MainError> {
                 // One result found (no ambiguity)
                 let leaf = leaves[0].clone();
                 eprintln!("Recipe: {}", get_recipe(&leaf));
-                if args.options.no_newline {
-                    io::stdout().write_all(&leaf.borrow().data.decoded)?;
-                } else {
-                    io::stdout().write_all(&leaf.borrow().data.decoded)?;
-                    println!();
-                }
+                display_result(&leaf.borrow().data.decoded, &args.options)?;
             } else {
                 // Multiple results found
                 eprintln!("Warning: {} results found, you may want to use the --min-printable-percentage option", leaves.len());
