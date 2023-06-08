@@ -126,7 +126,7 @@ enum Error {
 }
 
 #[cfg(not(tarpaulin_include))]
-fn base_to_recipe(bases: &Vec<&BaseMetadata>) -> String {
+fn base_to_recipe(bases: &[&BaseMetadata]) -> String {
     bases
         .iter()
         .map(|b| b.name)
@@ -136,8 +136,8 @@ fn base_to_recipe(bases: &Vec<&BaseMetadata>) -> String {
 
 #[cfg(not(tarpaulin_include))]
 fn display_result(
-    result: &Vec<&[u8]>,
-    bases: &Vec<&BaseMetadata>,
+    result: &[&[u8]],
+    bases: &[&BaseMetadata],
     options: &Options,
 ) -> std::io::Result<()> {
     if options.verbose {
@@ -174,9 +174,15 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = encode(&plaintext, &bases);
-            let bases = bases.iter().map(|base| base.get_metadata()).collect();
+            let bases = bases
+                .iter()
+                .map(|base| base.get_metadata())
+                .collect::<Vec<_>>();
             display_result(
-                &result.iter().map(|data| data.as_bytes()).collect(),
+                &result
+                    .iter()
+                    .map(|data| data.as_bytes())
+                    .collect::<Vec<_>>(),
                 &bases,
                 &args.options,
             )?;
@@ -193,9 +199,15 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = decode(&ciphertext, &bases)?;
-            let bases = bases.iter().map(|base| base.get_metadata()).collect();
+            let bases = bases
+                .iter()
+                .map(|base| base.get_metadata())
+                .collect::<Vec<_>>();
             display_result(
-                &result.iter().map(|data| data.as_slice()).collect(),
+                &result
+                    .iter()
+                    .map(|data| data.as_slice())
+                    .collect::<Vec<_>>(),
                 &bases,
                 &args.options,
             )?;
@@ -217,8 +229,14 @@ fn main() -> Result<(), MainError> {
                 // One result found (no ambiguity)
                 let leaf = leaves[0].clone();
                 let recipe = get_recipe(&leaf);
-                let bases = recipe.iter().map(|data| data.base.unwrap()).collect();
-                let result = recipe.iter().map(|data| data.decoded.as_slice()).collect();
+                let bases = recipe
+                    .iter()
+                    .map(|data| data.base.unwrap())
+                    .collect::<Vec<_>>();
+                let result = recipe
+                    .iter()
+                    .map(|data| data.decoded.as_slice())
+                    .collect::<Vec<_>>();
                 if !args.options.quiet {
                     eprintln!("Recipe: {}", base_to_recipe(&bases));
                 }
@@ -228,8 +246,14 @@ fn main() -> Result<(), MainError> {
                 eprintln!("Warning: {} results found, you may want to use the --min-printable-percentage option", leaves.len());
                 for leaf in leaves {
                     let recipe = get_recipe(&leaf);
-                    let bases = recipe.iter().map(|data| data.base.unwrap()).collect();
-                    let result = recipe.iter().map(|data| data.decoded.as_slice()).collect();
+                    let bases = recipe
+                        .iter()
+                        .map(|data| data.base.unwrap())
+                        .collect::<Vec<_>>();
+                    let result = recipe
+                        .iter()
+                        .map(|data| data.decoded.as_slice())
+                        .collect::<Vec<_>>();
                     println!("Recipe: {}", base_to_recipe(&bases));
                     display_result(&result, &bases, &args.options)?;
                     println!();
