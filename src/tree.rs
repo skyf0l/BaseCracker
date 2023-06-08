@@ -40,7 +40,7 @@ impl<T> Tree<T> {
 pub struct Node<T> {
     pub children: Vec<RefNode<T>>,
     pub parent: Option<RefNode<T>>,
-    pub data: T,
+    pub data: Rc<T>,
 }
 
 impl<T> fmt::Debug for Node<T>
@@ -66,7 +66,7 @@ impl<T> Node<T> {
         Rc::new(RefCell::new(Self {
             children: Vec::new(),
             parent: None,
-            data,
+            data: Rc::new(data),
         }))
     }
 
@@ -75,7 +75,7 @@ impl<T> Node<T> {
         Rc::new(RefCell::new(Self {
             children: Vec::new(),
             parent: Some(parent),
-            data,
+            data: Rc::new(data),
         }))
     }
 }

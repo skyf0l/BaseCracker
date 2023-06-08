@@ -3,7 +3,7 @@ use main_error::MainError;
 use std::path::Path;
 use std::{io, io::Write};
 
-use basecracker::{crack, decode, encode, get_recipe, BaseError, DecodeError};
+use basecracker::{crack, decode, encode, get_recipe, BaseError, BaseMetadata, DecodeError};
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
@@ -126,11 +126,24 @@ enum Error {
 }
 
 #[cfg(not(tarpaulin_include))]
-fn display_result(result: &[u8], options: &Options) -> std::io::Result<()> {
+fn base_to_recipe(bases: &Vec<&BaseMetadata>) -> String {
+    bases
+        .iter()
+        .map(|b| b.name)
+        .collect::<Vec<&'static str>>()
+        .join(",")
+}
+
+#[cfg(not(tarpaulin_include))]
+fn display_result(
+    result: &Vec<&[u8]>,
+    _bases: &Vec<&BaseMetadata>,
+    options: &Options,
+) -> std::io::Result<()> {
     if options.no_newline {
-        io::stdout().write_all(result)?;
+        io::stdout().write_all(result.last().unwrap())?;
     } else {
-        io::stdout().write_all(result)?;
+        io::stdout().write_all(result.last().unwrap())?;
         io::stdout().write_all(b"\n")?;
     }
     Ok(())
@@ -153,7 +166,12 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = encode(&plaintext, &bases);
-            display_result(result.last().unwrap().as_bytes(), &args.options)?;
+            let bases = bases.iter().map(|base| base.get_metadata()).collect();
+            display_result(
+                &result.iter().map(|data| data.as_bytes()).collect(),
+                &bases,
+                &args.options,
+            )?;
         }
         SubCommand::Decode {
             ciphertext,
@@ -167,7 +185,12 @@ fn main() -> Result<(), MainError> {
             }
 
             let result = decode(&ciphertext, &bases)?;
-            display_result(result.last().unwrap(), &args.options)?;
+            let bases = bases.iter().map(|base| base.get_metadata()).collect();
+            display_result(
+                &result.iter().map(|data| data.as_slice()).collect(),
+                &bases,
+                &args.options,
+            )?;
         }
         SubCommand::Crack { ciphertext } => {
             let ciphertext = read_file_or_arg(ciphertext);
@@ -185,16 +208,22 @@ fn main() -> Result<(), MainError> {
             } else if leaves.len() == 1 {
                 // One result found (no ambiguity)
                 let leaf = leaves[0].clone();
+                let recipe = get_recipe(&leaf);
+                let bases = recipe.iter().map(|data| data.base.unwrap()).collect();
+                let result = recipe.iter().map(|data| data.decoded.as_slice()).collect();
                 if !args.options.quiet {
-                    eprintln!("Recipe: {}", get_recipe(&leaf));
+                    eprintln!("Recipe: {}", base_to_recipe(&bases));
                 }
-                display_result(&leaf.borrow().data.decoded, &args.options)?;
+                display_result(&result, &bases, &args.options)?;
             } else {
                 // Multiple results found
                 eprintln!("Warning: {} results found, you may want to use the --min-printable-percentage option", leaves.len());
                 for leaf in leaves {
-                    println!("Recipe: {}", get_recipe(&leaf));
-                    io::stdout().write_all(&leaf.borrow().data.decoded)?;
+                    let recipe = get_recipe(&leaf);
+                    let bases = recipe.iter().map(|data| data.base.unwrap()).collect();
+                    let result = recipe.iter().map(|data| data.decoded.as_slice()).collect();
+                    println!("Recipe: {}", base_to_recipe(&bases));
+                    display_result(&result, &bases, &args.options)?;
                     println!();
                 }
             }

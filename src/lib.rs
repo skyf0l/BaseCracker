@@ -3,7 +3,10 @@
 #![warn(missing_docs)]
 
 use iterator_ext::IteratorExt;
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self},
+    rc::Rc,
+};
 
 mod modules;
 pub use modules::*;
@@ -122,39 +125,20 @@ pub fn crack_round(
     }
 }
 
-/// Crack recipe: a list of bases to decode the ciphertext.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CrackRecipe(Vec<&'static BaseMetadata>);
-
-impl Display for CrackRecipe {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            self.0
-                .iter()
-                .map(|b| b.name)
-                .collect::<Vec<&'static str>>()
-                .join(",")
-        )
-    }
-}
-
 /// Returns the base sequence of the given node including itself, until the root node.
-pub fn get_recipe(node: &CrackNode) -> CrackRecipe {
-    let mut bases = vec![node.borrow().data.base.unwrap()];
+pub fn get_recipe(node: &CrackNode) -> Vec<Rc<CrackData>> {
+    let mut bases = vec![node.borrow().data.clone()];
     let mut current = node.clone();
 
     while let Some(parent) = &current.clone().borrow().parent {
         // Ignore the first node.
-        if parent.borrow().data.base.is_none() {
-            current = parent.clone();
-            continue;
+        if parent.borrow().parent.is_none() {
+            break;
         }
-        bases.push(parent.borrow().data.base.unwrap());
+        bases.push(parent.borrow().data.clone());
         current = parent.clone();
     }
     // Reverse the bases to get the decoding sequence.
     bases.reverse();
-    CrackRecipe(bases)
+    bases
 }
