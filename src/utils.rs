@@ -1,34 +1,39 @@
-pub fn get_printable_percentage(s: &str) -> f32 {
-    if s.len() == 0 {
+pub fn printable_percentage(bytes: &[u8]) -> f32 {
+    if bytes.is_empty() {
         return 0.0;
     }
     let mut sum = 0.0;
-    for c in s.chars() {
-        if c.is_alphabetic() || ((c as u32) >= 32 && (c as u32) < 127) {
+    for c in bytes {
+        if *c >= 32 && *c < 127 {
             sum += 1.0;
         }
     }
-    sum / s.len() as f32
+    sum / bytes.len() as f32
 }
 
 #[cfg(test)]
 #[cfg(not(tarpaulin_include))]
-#[test]
-fn test_get_printable_percentage() {
-    const TESTLIST: [(&str, f32); 5] = [
-        ("", 0.0),
-        ("Hello World!", 1.0),
-        ("He\0lo W\0rl\0!", 0.75),
-        ("H\0l\0o\0\0\0r\0d!", 0.5),
-        ("He\0\0\0\0\0o\0\0\0\0", 0.25),
-    ];
+mod test {
+    use super::*;
 
-    for test in TESTLIST.iter() {
-        let printable_percentage = get_printable_percentage(&test.0);
-        assert_eq!(
-            printable_percentage, test.1,
-            "For string {}: Expected {} but got {}",
-            test.0, test.1, printable_percentage
-        );
+    #[test]
+    fn test_printable_percentage() {
+        const TESTLIST: [(&[u8], f32); 5] = [
+            (b"", 0.0),
+            (b"Hello World!", 1.0),
+            (b"He\0lo W\0rl\0!", 0.75),
+            (b"H\0l\0o\0\0\0r\0d!", 0.5),
+            (b"He\0\0\0\0\0o\0\0\0\0", 0.25),
+        ];
+
+        for (test, exp) in TESTLIST.iter() {
+            let printable_percentage = printable_percentage(test);
+            assert_eq!(
+                printable_percentage,
+                *exp,
+                "For string {}: Expected {exp} but got {printable_percentage}",
+                unsafe { std::str::from_utf8_unchecked(test) }
+            );
+        }
     }
 }

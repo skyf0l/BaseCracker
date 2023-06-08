@@ -1,65 +1,94 @@
+/// Base62 module.
 pub struct Base62;
 
 use super::*;
 
 impl Base for Base62 {
-    fn get_name(&self) -> &'static str {
-        "base62"
+    fn get_metadata(&self) -> &'static BaseMetadata {
+        &BaseMetadata {
+            name: "base62",
+            short_name: "b62",
+            base: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+            padding: None,
+        }
     }
 
-    fn get_short_name(&self) -> &'static str {
-        "b62"
+    fn encode(&self, plain: &[u8]) -> String {
+        bs62::encode_data(plain)
     }
 
-    fn get_base(&self) -> &'static str {
-        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    }
-
-    fn get_padding(&self) -> Option<&'static str> {
-        None
-    }
-
-    fn encode(&self, decoded: &str) -> Result<String, String> {
-        encode_decimal(decoded, self.get_base(), 1)
-    }
-
-    fn decode(&self, encoded: &str) -> Result<String, String> {
-        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
-        decode_decimal(encoded.as_str(), self.get_base())
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError> {
+        if enc.is_empty() {
+            return Ok(vec![]);
+        }
+        bs62::decode_data_forgiving(enc).map_err(|_| DecodeError::Error)
     }
 }
 
 #[cfg(test)]
 #[cfg(not(tarpaulin_include))]
-#[test]
-fn test_encode_decode() {
-    let base = Base62;
-    const TESTLIST: [(&str, &str); 10] = [
-        ("Hello World!", "T8dgcjRGkZ3aysdN"),
-        ("BaseCracker", "6TBjWkfpqJ4MQks"),
-        ("\x7fELF", "2KVHWw"),
-        ("", ""),
-        ("a", "1Z"),
-        ("aa", "6U5"),
-        ("aaa", "QmED"),
-        ("aaaa", "1mZ8hF"),
-        ("aaaaa", "7MX5uZV"),
-        ("aaaaaa", "UP2ePabZ"),
-    ];
 
-    for test in TESTLIST.iter() {
-        // encode
-        let encoded = match base.encode(&test.0) {
-            Ok(encoded) => encoded,
-            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
-        };
-        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
+mod tests {
+    use super::*;
 
-        // decode
-        let decoded = match base.decode(&encoded) {
-            Ok(decoded) => decoded,
-            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
-        };
-        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
+    #[test]
+    fn test_encode_decode() {
+        let base = Base62;
+
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "28B5ymDkgIUeiuVwP"),
+            (b"BaseCracker", "VQOOjhqLhZROpr0"),
+            (b"\x7fELF", "71AWj0"),
+            (b"", "1"),
+            (b"a", "5h"),
+            (b"aa", "NX7"),
+            (b"aaa", "1ZAkT"),
+            (b"aaaa", "6TENtJ"),
+            (b"aaaaa", "QihOeO1"),
+            (b"aaaaaa", "1mKZBmlBh"),
+        ];
+
+        for (plaintext, ciphertext) in TESTLIST.iter() {
+            assert_eq!(
+                base.encode(plaintext),
+                *ciphertext,
+                "Encoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
+            );
+
+            assert_eq!(
+                base.decode(ciphertext).unwrap(),
+                *plaintext,
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
+            );
+        }
+    }
+
+    #[test]
+    fn test_decode_forgiving() {
+        let base = Base62;
+
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "T8dgcjRGkZ3aysdN"),
+            (b"BaseCracker", "6TBjWkfpqJ4MQks"),
+            (b"\x7fELF", "2KVHWw"),
+            (b"", ""),
+            (b"a", "1Z"),
+            (b"aa", "6U5"),
+            (b"aaa", "QmED"),
+            (b"aaaa", "1mZ8hF"),
+            (b"aaaaa", "7MX5uZV"),
+            (b"aaaaaa", "UP2ePabZ"),
+        ];
+
+        for (plaintext, ciphertext) in TESTLIST.iter() {
+            assert_eq!(
+                base.decode(ciphertext).unwrap(),
+                *plaintext,
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
+            );
+        }
     }
 }

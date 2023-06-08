@@ -1,65 +1,71 @@
+use base58::{FromBase58, ToBase58};
+
+/// Base58 module.
 pub struct Base58;
 
 use super::*;
 
 impl Base for Base58 {
-    fn get_name(&self) -> &'static str {
-        "base58"
+    fn get_metadata(&self) -> &'static BaseMetadata {
+        &BaseMetadata {
+            name: "base58",
+            short_name: "b58",
+            base: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+            padding: None,
+        }
     }
 
-    fn get_short_name(&self) -> &'static str {
-        "b58"
+    fn encode(&self, plain: &[u8]) -> String {
+        plain.to_base58()
     }
 
-    fn get_base(&self) -> &'static str {
-        "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-    }
-
-    fn get_padding(&self) -> Option<&'static str> {
-        None
-    }
-
-    fn encode(&self, decoded: &str) -> Result<String, String> {
-        encode_decimal(decoded, self.get_base(), 1)
-    }
-
-    fn decode(&self, encoded: &str) -> Result<String, String> {
-        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
-        decode_decimal(encoded.as_str(), self.get_base())
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError> {
+        enc.from_base58().map_err(|e| match e {
+            base58::FromBase58Error::InvalidBase58Character(c, n) => {
+                DecodeError::InvalidByte(n, c as u8)
+            }
+            base58::FromBase58Error::InvalidBase58Length => DecodeError::InvalidLength,
+        })
     }
 }
 
 #[cfg(test)]
 #[cfg(not(tarpaulin_include))]
-#[test]
-fn test_encode_decode() {
-    let base = Base58;
-    const TESTLIST: [(&str, &str); 10] = [
-        ("Hello World!", "2NEpo7TZRRrLZSi2U"),
-        ("BaseCracker", "HTivuUbjqtbbaC1"),
-        ("\x7fELF", "4Fghph"),
-        ("", ""),
-        ("a", "2g"),
-        ("aa", "8Qp"),
-        ("aaa", "Zi88"),
-        ("aaaa", "3VNWTa"),
-        ("aaaaa", "BzDw2JL"),
-        ("aaaaaa", "qVa5SjWY"),
-    ];
 
-    for test in TESTLIST.iter() {
-        // encode
-        let encoded = match base.encode(&test.0) {
-            Ok(encoded) => encoded,
-            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
-        };
-        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
+mod tests {
+    use super::*;
 
-        // decode
-        let decoded = match base.decode(&encoded) {
-            Ok(decoded) => decoded,
-            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
-        };
-        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
+    #[test]
+    fn test_encode_decode() {
+        let base = Base58;
+
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "2NEpo7TZRRrLZSi2U"),
+            (b"BaseCracker", "HTivuUbjqtbbaC1"),
+            (b"\x7fELF", "4Fghph"),
+            (b"", ""),
+            (b"a", "2g"),
+            (b"aa", "8Qp"),
+            (b"aaa", "Zi88"),
+            (b"aaaa", "3VNWTa"),
+            (b"aaaaa", "BzDw2JL"),
+            (b"aaaaaa", "qVa5SjWY"),
+        ];
+
+        for (plaintext, ciphertext) in TESTLIST.iter() {
+            assert_eq!(
+                base.encode(plaintext),
+                *ciphertext,
+                "Encoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
+            );
+
+            assert_eq!(
+                base.decode(ciphertext).unwrap(),
+                *plaintext,
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
+            );
+        }
     }
 }

@@ -1,16 +1,15 @@
 # BaseCracker
 
-[![Build](https://github.com/skyf0l/BaseCracker/actions/workflows/build.yml/badge.svg)](https://github.com/skyf0l/BaseCracker/actions/workflows/build.yml)
+[![Build](https://github.com/skyf0l/BaseCracker/actions/workflows/ci.yml/badge.svg)](https://github.com/skyf0l/BaseCracker/actions/workflows/ci.yml)
 [![](https://img.shields.io/crates/v/basecracker.svg)](https://crates.io/crates/basecracker)
 [![Help Wanted](https://img.shields.io/github/issues/skyf0l/BaseCracker/help%20wanted?color=green)](https://github.com/skyf0l/BaseCracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![codecov](https://codecov.io/gh/skyf0l/basecracker/branch/master/graph/badge.svg)](https://codecov.io/gh/skyf0l/basecracker)
-[![Lines Of Code](https://tokei.rs/b1/github/skyf0l/BaseCracker?category=code)](https://github.com/skyf0l/BaseCracker)
 
 BaseCracker is a tool to encode, decode and crack encoded data. It can be really useful to crack some random encoded strings in CTFs.
 
 ## Installation
 
-You can build and install it from source using cargo:
+From crates.io:
 
 ```console
 cargo install basecracker
@@ -18,10 +17,10 @@ cargo install basecracker
 
 ## Current supported encodings
 
-- base2 / binary (padding by 7, 8, 9, 10)
+- base2 / binary (padded by 8)
 - base10 / decimal
-- base16 / hexadecimal
-- base32
+- hexadecimal
+- base32 (RFC4648)
 - base36
 - base58
 - base62
@@ -31,78 +30,59 @@ cargo install basecracker
 ## Options
 
 ```
-basecracker 0.1.0
-Encode, decode and crack encoded data
+Encode, Decode and Crack encoded data, useful to crack some random encoded strings in CTFs.
 
-USAGE:
-    basecracker [OPTIONS]
+Usage: basecracker [OPTIONS] <COMMAND>
 
-OPTIONS:
-    -b, --bases <BASES>...      Set base to use (can be separated by comma or space)
-    -c, --crack <CIPHER>        Crack the cipher/file using the specified bases (default: all)
-    -d, --decode <CIPHER>       Decode given cipher/file using the specified bases
-    -e, --encode <PLAINTEXT>    Encode given plaintext/file using the specified bases
-    -h, --help                  Print help information
-    -j, --json                  Output cracker results in json format
-    -l, --list                  List supported bases
-    -q, --quiet                 Quiet mode, don't print anything except results
-    -r, --reversed              Reverse bases order (default: false)
-    -v, --verbose               Verbose mode, print encoding/decoding steps
-    -V, --version               Print version information
+Commands:
+  encode  Encode given plaintext/file using the specified bases
+  decode  Decode given cipher/file using the specified bases
+  crack   Crack given cipher/file
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -q, --quiet
+          Quiet mode, don't print anything except results
+  -v, --verbose
+          Verbose mode
+  -m, --min-printable-percentage <MIN_PRINTABLE_PERCENTAGE>
+          Minimum printable percentage to consider a result valid [default: 0.9]
+  -n, --no-newline
+          Do not output the trailing newline
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 
 ## Example
 
 ```console
-$ basecracker -e "Awsome CTF tool" -b b64,b85,hex,b32,b62,b58
-2SYnX25ZB1torUZ1AmsobB58ESDjzHzb2dJTZuwt22KfynQP1eRjxPoumGWiA45iGpRw2sx5LVB1D8K8xaLTTetafmPs3a44oiaFxrg3s4d4fkWJ36UzrSFWuLL6WbdQ5nbQSBCV7gC2DCzrxpaj
-$ basecracker -d 2SYnX25ZB1torUZ1AmsobB58ESDjzHzb2dJTZuwt22KfynQP1eRjxPoumGWiA45iGpRw2sx5LVB1D8K8xaLTTetafmPs3a44oiaFxrg3s4d4fkWJ36UzrSFWuLL6WbdQ5nbQSBCV7gC2DCzrxpaj -b b64,b85,hex,b32,b62,b58 -r
+$ basecracker encode "Awsome CTF tool" b64,b85,hex,b32,b62,b58
+2eSHB3WFgFiySPWP47oyrMrT6Vb4WXTEv5ZyWdmWWJNJ4H65n2auRW4ZFutQPtXegrNimoCAeUfiQwMAnb4UYg6grcK2WUCTL9LquGa4564JBJK2jAbRfPVjKx9sCgUVdrsUfyMuMR6MipKYERRr
+$ basecracker decode 2eSHB3WFgFiySPWP47oyrMrT6Vb4WXTEv5ZyWdmWWJNJ4H65n2auRW4ZFutQPtXegrNimoCAeUfiQwMAnb4UYg6grcK2WUCTL9LquGa4564JBJK2jAbRfPVjKx9sCgUVdrsUfyMuMR6MipKYERRr b64,b85,hex,b32,b62,b58 -r
 Awsome CTF tool
-$ basecracker -c 2SYnX25ZB1torUZ1AmsobB58ESDjzHzb2dJTZuwt22KfynQP1eRjxPoumGWiA45iGpRw2sx5LVB1D8K8xaLTTetafmPs3a44oiaFxrg3s4d4fkWJ36UzrSFWuLL6WbdQ5nbQSBCV7gC2DCzrxpaj
-Recipe: base58 -> base62 -> base32 -> hex -> base85 -> base64
-Result: Awsome CTF tool
-```
-
-## JSON output
-
-BaseCracker can output results in JSON format. This is useful for other tools that can parse JSON output.
-
-```console
-$ basecracker -c 2SYnX25ZB1torUZ1AmsobB58ESDjzHzb2dJTZuwt22KfynQP1eRjxPoumGWiA45iGpRw2sx5LVB1D8K8xaLTTetafmPs3a44oiaFxrg3s4d4fkWJ36UzrSFWuLL6WbdQ5nbQSBCV7gC2DCzrxpaj -j | jq
-{
-  "cipher": "2SYnX25ZB1torUZ1AmsobB58ESDjzHzb2dJTZuwt22KfynQP1eRjxPoumGWiA45iGpRw2sx5LVB1D8K8xaLTTetafmPs3a44oiaFxrg3s4d4fkWJ36UzrSFWuLL6WbdQ5nbQSBCV7gC2DCzrxpaj",
-  "plaintexts": [
-    {
-      "bases": [
-        "base58",
-        "base62",
-        "base32",
-        "hex",
-        "base85",
-        "base64"
-      ],
-      "plaintext": "Awsome CTF tool"
-    }
-  ]
-}
+$ basecracker crack 2eSHB3WFgFiySPWP47oyrMrT6Vb4WXTEv5ZyWdmWWJNJ4H65n2auRW4ZFutQPtXegrNimoCAeUfiQwMAnb4UYg6grcK2WUCTL9LquGa4564JBJK2jAbRfPVjKx9sCgUVdrsUfyMuMR6MipKYERRr
+Recipe: base58,base62,base32,hex,base85,base64
+Awsome CTF tool
 ```
 
 ## Verbose mode
 
-Useful if you want to see the steps of encoding/decoding.
+Useful if you want to see the steps of encoding/decoding/cracking
 
 ```console
-$ basecracker -d 2SYnX25ZB1torUZ1AmsobB58ESDjzHzb2dJTZuwt22KfynQP1eRjxPoumGWiA45iGpRw2sx5LVB1D8K8xaLTTetafmPs3a44oiaFxrg3s4d4fkWJ36UzrSFWuLL6WbdQ5nbQSBCV7gC2DCzrxpaj -b b64,b85,hex,b32,b62,b58 -r -v
-Cipher: 2SYnX25ZB1torUZ1AmsobB58ESDjzHzb2dJTZuwt22KfynQP1eRjxPoumGWiA45iGpRw2sx5LVB1D8K8xaLTTetafmPs3a44oiaFxrg3s4d4fkWJ36UzrSFWuLL6WbdQ5nbQSBCV7gC2DCzrxpaj
+$ basecracker -v crack 2eSHB3WFgFiySPWP47oyrMrT6Vb4WXTEv5ZyWdmWWJNJ4H65n2auRW4ZFutQPtXegrNimoCAeUfiQwMAnb4UYg6grcK2WUCTL9LquGa4564JBJK2jAbRf
+PVjKx9sCgUVdrsUfyMuMR6MipKYERRr
+Recipe: base58,base62,base32,hex,base85,base64
+Applying base58:  9Y91a8AfMC1fYZFb6THWx0VBVu1R6BPhFsVhmAksMcKNLIibCXXnDGACS9woBiiuUhmwYgcEHrO4ZjPlvMVUTBxuOkLovyLgGTL2MOCZml9y
+Applying base62:  GUYTIMZUMQ2TMNZQGU3DMYZXGA3TMNTGGRSTMYRXGY2TQNTGGUYTMNRVG43DINTCGU3DMYZXGA3WEMRV
+Applying base32:  51434d5670566c70766f4e6b76586f516657646b566c707b25
+Applying hex:     QCMVpVlpvoNkvXoQfWdkVlp{%
+Applying base85:  QXdzb21lIENURiB0b29s
+Applying base64:  Awsome CTF tool
 
-Applying base58:    24zWWqnLNTkqrJLFhyjKgOLhOVogWn56yCpBh7iHx8gU5QIcIwP4HuxlqkbBy7ccozgSHPut9d04qUU2erRetVaJE8bkM0XiKqQBWGaM96NH
-Applying base62:    GNRDEZBTG42DANJUGQYDKMBVGQ2WCNJTGM4DIZRVME2DENJTGNRDIYJUGE2DQNDGGQYDKMBVGQ3TENRS
-Applying base32:    3b2d3740544050545a53384f5a42533b4a41484f4050547262
-Applying hex:       ;-7@T@PTZS8OZBS;JAHO@PTrb
-Applying base85:    QXdzb21lIENURiB0b29s
-Applying base64:    Awsome CTF tool
-
-Plaintext: Awsome CTF tool
+Awsome CTF tool
 ```
 
 ## License

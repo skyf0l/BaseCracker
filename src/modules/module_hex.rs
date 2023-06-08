@@ -1,66 +1,70 @@
+/// Hex module.
 pub struct Hex;
 
 use super::*;
 
 impl Base for Hex {
-    fn get_name(&self) -> &'static str {
-        "hex"
+    fn get_metadata(&self) -> &'static BaseMetadata {
+        &BaseMetadata {
+            name: "hex",
+            short_name: "h",
+            base: "0123456789abcdef",
+            padding: None,
+        }
     }
 
-    fn get_short_name(&self) -> &'static str {
-        "h"
+    fn encode(&self, plain: &[u8]) -> String {
+        hex::encode(plain)
     }
 
-    fn get_base(&self) -> &'static str {
-        "0123456789abcdef"
-    }
-
-    fn get_padding(&self) -> Option<&'static str> {
-        None
-    }
-
-    fn encode(&self, decoded: &str) -> Result<String, String> {
-        encode_decimal(decoded, self.get_base(), 2)
-    }
-
-    fn decode(&self, encoded: &str) -> Result<String, String> {
-        let encoded = encoded.replace("\n", "").replace(" ", "").replace("\t", "");
-        let encoded = encoded.to_lowercase();
-        decode_decimal(encoded.as_str(), self.get_base())
+    fn decode(&self, enc: &str) -> Result<Vec<u8>, DecodeError> {
+        hex::decode(enc).map_err(|e| match e {
+            hex::FromHexError::InvalidHexCharacter { c, index } => {
+                DecodeError::InvalidByte(index, c as u8)
+            }
+            hex::FromHexError::OddLength => DecodeError::InvalidLength,
+            hex::FromHexError::InvalidStringLength => unreachable!(),
+        })
     }
 }
 
 #[cfg(test)]
 #[cfg(not(tarpaulin_include))]
-#[test]
-fn test_encode_decode() {
-    let base = Hex;
-    const TESTLIST: [(&str, &str); 10] = [
-        ("Hello World!", "48656c6c6f20576f726c6421"),
-        ("BaseCracker", "42617365437261636b6572"),
-        ("\x7fELF", "7f454c46"),
-        ("", ""),
-        ("a", "61"),
-        ("aa", "6161"),
-        ("aaa", "616161"),
-        ("aaaa", "61616161"),
-        ("aaaaa", "6161616161"),
-        ("aaaaaa", "616161616161"),
-    ];
 
-    for test in TESTLIST.iter() {
-        // encode
-        let encoded = match base.encode(&test.0) {
-            Ok(encoded) => encoded,
-            Err(e) => panic!("Error while encoding \"{}\": {}", test.0, e),
-        };
-        assert_eq!(encoded, test.1, "Encoding \"{}\" failed", test.0);
+mod tests {
+    use super::*;
 
-        // decode
-        let decoded = match base.decode(&encoded) {
-            Ok(decoded) => decoded,
-            Err(e) => panic!("Error while decoding \"{}\": {}", encoded, e),
-        };
-        assert_eq!(decoded, test.0, "Decoding \"{}\" failed", encoded);
+    #[test]
+    fn test_encode_decode() {
+        let base = Hex;
+
+        const TESTLIST: [(&[u8], &str); 10] = [
+            (b"Hello World!", "48656c6c6f20576f726c6421"),
+            (b"BaseCracker", "42617365437261636b6572"),
+            (b"\x7fELF", "7f454c46"),
+            (b"", ""),
+            (b"a", "61"),
+            (b"aa", "6161"),
+            (b"aaa", "616161"),
+            (b"aaaa", "61616161"),
+            (b"aaaaa", "6161616161"),
+            (b"aaaaaa", "616161616161"),
+        ];
+
+        for (plaintext, ciphertext) in TESTLIST.iter() {
+            assert_eq!(
+                base.encode(plaintext),
+                *ciphertext,
+                "Encoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
+            );
+
+            assert_eq!(
+                base.decode(ciphertext).unwrap(),
+                *plaintext,
+                "Decoding \"{}\" failed",
+                unsafe { std::str::from_utf8_unchecked(plaintext) }
+            );
+        }
     }
 }
