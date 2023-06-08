@@ -137,9 +137,17 @@ fn base_to_recipe(bases: &Vec<&BaseMetadata>) -> String {
 #[cfg(not(tarpaulin_include))]
 fn display_result(
     result: &Vec<&[u8]>,
-    _bases: &Vec<&BaseMetadata>,
+    bases: &Vec<&BaseMetadata>,
     options: &Options,
 ) -> std::io::Result<()> {
+    if options.verbose {
+        for (data, base) in result.iter().zip(bases.iter()) {
+            print!("{:<18}", format!("Applying {}:", base.name).to_string());
+            io::stdout().write_all(data)?;
+            io::stdout().write_all(b"\n")?;
+        }
+        println!();
+    }
     if options.no_newline {
         io::stdout().write_all(result.last().unwrap())?;
     } else {
