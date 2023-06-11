@@ -2,7 +2,6 @@
 
 [![Build](https://github.com/skyf0l/BaseCracker/actions/workflows/ci.yml/badge.svg)](https://github.com/skyf0l/BaseCracker/actions/workflows/ci.yml)
 [![](https://img.shields.io/crates/v/basecracker.svg)](https://crates.io/crates/basecracker)
-[![Help Wanted](https://img.shields.io/github/issues/skyf0l/BaseCracker/help%20wanted?color=green)](https://github.com/skyf0l/BaseCracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![codecov](https://codecov.io/gh/skyf0l/basecracker/branch/master/graph/badge.svg)](https://codecov.io/gh/skyf0l/basecracker)
 
 BaseCracker is a tool to encode, decode and crack encoded data. It can be really useful to crack some random encoded strings in CTFs.
