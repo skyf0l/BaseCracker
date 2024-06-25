@@ -6,6 +6,9 @@
 
 BaseCracker is a tool to encode, decode and crack encoded data. It can be really useful to crack some random encoded strings in CTFs.
 
+> [!IMPORTANT]
+> Archived because [Ciphey](https://github.com/Ciphey/Ciphey) is already way better for this...
+
 ## Installation
 
 From crates.io:
