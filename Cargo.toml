@@ -1,6 +1,6 @@
 [package]
 name = "basecracker"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["skyf0l <skyf0lmails@proton.me>"]
 description = "Encode, Decode and Crack encoded data, useful to crack some random encoded strings in CTFs."

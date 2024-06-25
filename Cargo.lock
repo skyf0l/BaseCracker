@@ -89,7 +89,7 @@ checksum = "88b68cde48c539cf9db81c5598e215dc32d0401a167f899cf26e35f61815eb9e"
 
 [[package]]
 name = "basecracker"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "base-x",
  "base32",
